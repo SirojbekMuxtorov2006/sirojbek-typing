@@ -5,7 +5,6 @@ import { CheckCircle2, RotateCcw, ArrowRight, ArrowLeft, Trophy, Target, Award }
 import VirtualHandsKeyboard from './VirtualHandsKeyboard';
 import { calculateWpm, calculateAccuracy } from '@/lib/typing-engine';
 import sound from '@/lib/sound';
-import confetti from 'canvas-confetti';
 
 export interface LessonData {
   id: string;
@@ -112,12 +111,16 @@ export default function LessonViewer({
 
       if (isPassed) {
         sound.playSuccessChime();
-        confetti({
-          particleCount: 70,
-          spread: 60,
-          origin: { y: 0.6 },
-          colors: ['#E8B44F', '#42C98A'],
-        });
+        if (typeof window !== 'undefined') {
+          import('canvas-confetti').then((mod) => {
+            mod.default({
+              particleCount: 70,
+              spread: 60,
+              origin: { y: 0.6 },
+              colors: ['#E8B44F', '#42C98A'],
+            });
+          }).catch(() => {});
+        }
       }
 
       // Record progress to API

@@ -21,7 +21,6 @@ import {
 } from 'recharts';
 import KeyboardHeatmap from './KeyboardHeatmap';
 import { TypingResultPayload } from '@/lib/store';
-import confetti from 'canvas-confetti';
 
 interface ResultsModalProps {
   result: TypingResultPayload;
@@ -33,13 +32,16 @@ export default function ResultsModal({ result, onRetry, onNewTest }: ResultsModa
   const [copied, setCopied] = useState(false);
 
   React.useEffect(() => {
-    if (result.wpm >= 50) {
-      confetti({
-        particleCount: 75,
-        spread: 60,
-        origin: { y: 0.6 },
-        colors: ['#FF5E3A', '#27AE60', '#FFF0EA'],
-      });
+    if (result.wpm >= 50 && typeof window !== 'undefined') {
+      import('canvas-confetti').then((confettiModule) => {
+        const confetti = confettiModule.default;
+        confetti({
+          particleCount: 75,
+          spread: 60,
+          origin: { y: 0.6 },
+          colors: ['#FF5E3A', '#27AE60', '#FFF0EA'],
+        });
+      }).catch(() => {});
     }
   }, [result.wpm]);
 
