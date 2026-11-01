@@ -43,17 +43,17 @@ export default function Navbar() {
 
   return (
     <header className="w-full pt-4 pb-3 px-6 sm:px-12 flex items-center justify-between max-w-[1540px] mx-auto select-none">
-      {/* Brand Logo - 100% matched to screenshot 1 & 2 */}
+      {/* Brand Logo - SirojbekTyping */}
       <Link href="/" className="flex items-center gap-2.5 group focus:outline-none">
         {/* Coral badge with white inner rounded square icon */}
         <div className="w-10 h-10 rounded-2xl bg-[#FF5E3A] flex items-center justify-center text-white font-bold text-base shadow-[0_4px_14px_rgba(255,94,58,0.35)] transition-transform group-hover:scale-105">
-          <div className="w-5 h-5 rounded-md border-2 border-white flex items-center justify-center text-[10px] font-sans font-extrabold leading-none">
-            oi
+          <div className="w-5 h-5 rounded-md border-2 border-white flex items-center justify-center text-[10px] font-sans font-extrabold leading-none uppercase">
+            st
           </div>
         </div>
         <div className="flex items-center">
           <span className="font-extrabold text-[22px] tracking-tight text-[#FF5E3A] font-sans">
-            onlytyping
+            sirojbektyping
           </span>
         </div>
       </Link>

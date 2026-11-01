@@ -5,9 +5,9 @@ import Footer from '@/components/layout/Footer';
 import AuthProvider from '@/components/providers/AuthProvider';
 
 export const metadata: Metadata = {
-  title: 'onlytyping — free online typing speed test & practice',
+  title: 'sirojbektyping — professional typing speed test & learning platform',
   description:
-    'Free online typing speed test and practice platform. Test your words per minute, improve accuracy, and master touch typing with instant feedback.',
+    'Free online typing speed test and touch typing education platform by Sirojbek. Test your words per minute, improve accuracy, and master touch typing with instant feedback.',
   icons: {
     icon: '/favicon.ico',
   },
