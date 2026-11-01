@@ -6,43 +6,30 @@ import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 import {
   Keyboard,
-  BookOpen,
-  Target,
+  Sprout,
+  Languages,
+  Flag,
   Gamepad2,
-  Trophy,
   BarChart2,
-  User,
-  Shield,
+  LineChart,
   Volume2,
   VolumeX,
-  Globe,
+  Search,
+  Settings,
+  User,
+  Shield,
   LogOut,
-  Menu,
-  X,
+  ChevronDown,
 } from 'lucide-react';
-import Logo from '@/components/ui/Logo';
 import { useAppStore } from '@/lib/store';
-import { TRANSLATIONS, LanguageCode } from '@/lib/translations';
 
 export default function Navbar() {
   const pathname = usePathname();
   const { data: session } = useSession();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [langMenuOpen, setLangMenuOpen] = useState(false);
+  const [searchModalOpen, setSearchModalOpen] = useState(false);
 
   const { settings, setLanguage, isMuted, toggleMute, soundTheme, setSoundTheme } = useAppStore();
-  const t = TRANSLATIONS[settings.language] || TRANSLATIONS.en;
-
-  const navLinks = [
-    { href: '/', label: t.navType, icon: Keyboard },
-    { href: '/lessons', label: t.navLessons, icon: BookOpen },
-    { href: '/practice', label: t.navPractice, icon: Target },
-    { href: '/games', label: t.navGames, icon: Gamepad2 },
-    { href: '/leaderboard', label: t.navLeaderboard, icon: Trophy },
-    { href: '/dashboard', label: t.navProgress, icon: BarChart2 },
-  ];
-
-  const userRole = (session?.user as unknown as { role?: string })?.role;
 
   const handleSoundCycle = () => {
     if (isMuted) {
@@ -55,228 +42,249 @@ export default function Navbar() {
     }
   };
 
+  const navItems = [
+    { href: '/', label: 'type', icon: Keyboard, isType: true },
+    { href: '/lessons', label: 'lessons', icon: Sprout },
+    { href: '/practice', label: 'practice', icon: Languages },
+    { href: '/leaderboard', label: 'challenges', icon: Flag },
+    { href: '/games', label: 'games', icon: Gamepad2 },
+    { href: '/leaderboard', label: 'ranks', icon: BarChart2 },
+    { href: '/dashboard', label: 'analytics', icon: LineChart },
+  ];
+
+  const userRole = (session?.user as unknown as { role?: string })?.role;
+
   return (
-    <nav className="sticky top-0 z-50 w-full bg-background/95 backdrop-blur-md border-b border-border/80">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-        {/* Brand Logo */}
-        <Logo size="md" />
-
-        {/* Desktop Nav Links */}
-        <div className="hidden lg:flex items-center space-x-1">
-          {navLinks.map((link) => {
-            const Icon = link.icon;
-            const isActive = pathname === link.href;
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                  isActive
-                    ? 'text-accent bg-accent-muted'
-                    : 'text-text-secondary hover:text-text-primary hover:bg-secondary-bg'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                <span>{link.label}</span>
-              </Link>
-            );
-          })}
+    <header className="w-full pt-4 pb-2 px-6 sm:px-10 flex items-center justify-between max-w-[1500px] mx-auto select-none">
+      {/* Brand Logo - exactly like screenshot with coral badge and clean lowercase text */}
+      <Link href="/" className="flex items-center gap-2 group focus:outline-none">
+        <div className="w-9 h-9 rounded-2xl bg-[#FF5E3A] flex items-center justify-center text-white font-bold text-sm shadow-[0_4px_12px_rgba(255,94,58,0.3)] transition-transform group-hover:scale-105">
+          <span className="tracking-tighter font-mono">ST</span>
         </div>
+        <div className="flex items-baseline">
+          <span className="font-bold text-xl tracking-tight text-[#FF5E3A] font-sans">
+            sirojbek
+          </span>
+          <span className="font-bold text-xl tracking-tight text-[#FF5E3A] font-sans">
+            typing
+          </span>
+        </div>
+      </Link>
 
-        {/* Right Action Bar */}
-        <div className="hidden sm:flex items-center space-x-2">
-          {/* Sound Control */}
+      {/* Center Floating Pill Dock */}
+      <nav className="hidden md:flex items-center gap-1 bg-white px-2 py-1.5 rounded-full border border-border/80 shadow-sm">
+        {/* Type button (Highlighted when active) */}
+        <Link
+          href="/"
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+            pathname === '/'
+              ? 'bg-[#FFF0EA] text-[#FF5E3A] shadow-sm'
+              : 'text-[#8A94A6] hover:text-[#1E232E] hover:bg-slate-50'
+          }`}
+        >
+          <Keyboard className="w-4 h-4" />
+          <span>type</span>
+        </Link>
+
+        {/* Lessons */}
+        <Link
+          href="/lessons"
+          title="Touch Typing Lessons"
+          className={`p-2 rounded-full text-xs transition-colors ${
+            pathname.startsWith('/lessons')
+              ? 'bg-[#FFF0EA] text-[#FF5E3A]'
+              : 'text-[#8A94A6] hover:text-[#1E232E] hover:bg-slate-50'
+          }`}
+        >
+          <Sprout className="w-4 h-4" />
+        </Link>
+
+        {/* Languages / Practice */}
+        <div className="relative">
           <button
-            onClick={handleSoundCycle}
-            title={`Sound: ${soundTheme} (click to cycle)`}
-            className="p-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-secondary-bg border border-transparent hover:border-border transition-colors flex items-center gap-1 text-xs"
+            onClick={() => setLangMenuOpen(!langMenuOpen)}
+            title="Language & Vocabulary"
+            className={`p-2 rounded-full text-xs transition-colors ${
+              pathname.startsWith('/practice')
+                ? 'bg-[#FFF0EA] text-[#FF5E3A]'
+                : 'text-[#8A94A6] hover:text-[#1E232E] hover:bg-slate-50'
+            }`}
           >
-            {isMuted || soundTheme === 'off' ? (
-              <VolumeX className="w-4 h-4 text-text-muted" />
-            ) : (
-              <Volume2 className="w-4 h-4 text-accent" />
-            )}
-            <span className="capitalize text-[11px] text-text-muted">{soundTheme}</span>
+            <span className="font-serif font-bold text-sm leading-none px-0.5">文</span>
           </button>
 
-          {/* Language Switcher */}
-          <div className="relative">
-            <button
-              onClick={() => setLangMenuOpen(!langMenuOpen)}
-              className="p-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-secondary-bg border border-transparent hover:border-border transition-colors flex items-center gap-1.5 text-xs font-mono"
+          {langMenuOpen && (
+            <div
+              className="absolute left-1/2 -translate-x-1/2 mt-2 w-36 bg-white rounded-2xl border border-border shadow-xl py-1.5 z-50 animate-in fade-in zoom-in-95"
+              onMouseLeave={() => setLangMenuOpen(false)}
             >
-              <Globe className="w-4 h-4" />
-              <span className="uppercase font-semibold">{settings.language}</span>
-            </button>
-
-            {langMenuOpen && (
-              <div
-                className="absolute right-0 mt-2 w-32 rounded-lg bg-card-bg border border-border shadow-xl py-1 z-50 animate-in fade-in slide-in-from-top-2"
-                onMouseLeave={() => setLangMenuOpen(false)}
-              >
-                <button
-                  onClick={() => {
-                    setLanguage('en');
-                    setLangMenuOpen(false);
-                  }}
-                  className={`w-full px-3 py-1.5 text-left text-xs font-medium flex items-center justify-between ${
-                    settings.language === 'en' ? 'text-accent bg-accent-muted' : 'text-text-secondary hover:bg-secondary-bg'
-                  }`}
-                >
-                  <span>English</span>
-                  <span className="text-[10px] text-text-muted">EN</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setLanguage('uz');
-                    setLangMenuOpen(false);
-                  }}
-                  className={`w-full px-3 py-1.5 text-left text-xs font-medium flex items-center justify-between ${
-                    settings.language === 'uz' ? 'text-accent bg-accent-muted' : 'text-text-secondary hover:bg-secondary-bg'
-                  }`}
-                >
-                  <span>O&apos;zbekcha</span>
-                  <span className="text-[10px] text-text-muted">UZ</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setLanguage('ru');
-                    setLangMenuOpen(false);
-                  }}
-                  className={`w-full px-3 py-1.5 text-left text-xs font-medium flex items-center justify-between ${
-                    settings.language === 'ru' ? 'text-accent bg-accent-muted' : 'text-text-secondary hover:bg-secondary-bg'
-                  }`}
-                >
-                  <span>Русский</span>
-                  <span className="text-[10px] text-text-muted">RU</span>
-                </button>
-              </div>
-            )}
-          </div>
-
-          <div className="h-5 w-px bg-border my-auto mx-1" />
-
-          {/* User Auth Info / Buttons */}
-          {session?.user ? (
-            <div className="flex items-center space-x-2">
-              {userRole === 'ADMIN' && (
-                <Link
-                  href="/admin"
-                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-accent text-background hover:bg-accent-hover transition-colors shadow-sm"
-                >
-                  <Shield className="w-3.5 h-3.5" />
-                  <span>Admin</span>
-                </Link>
-              )}
-
-              <Link
-                href="/profile"
-                className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-secondary-bg hover:bg-elevated-bg border border-border text-xs text-text-primary transition-all"
-              >
-                <div className="w-5 h-5 rounded-full bg-accent/20 text-accent flex items-center justify-center font-bold text-[10px]">
-                  {session.user.name?.[0]?.toUpperCase() || 'U'}
-                </div>
-                <span className="font-medium max-w-[100px] truncate">{session.user.name || 'User'}</span>
-              </Link>
-
               <button
-                onClick={() => signOut({ callbackUrl: '/' })}
-                title="Sign Out"
-                className="p-2 rounded-lg text-text-secondary hover:text-error hover:bg-secondary-bg transition-colors"
+                onClick={() => {
+                  setLanguage('en');
+                  setLangMenuOpen(false);
+                }}
+                className={`w-full px-3 py-1.5 text-left text-xs font-medium flex items-center justify-between ${
+                  settings.language === 'en' ? 'text-[#FF5E3A] bg-[#FFF0EA] font-bold' : 'text-[#8A94A6] hover:bg-slate-50'
+                }`}
               >
-                <LogOut className="w-4 h-4" />
+                <span>English</span>
+                <span className="text-[10px]">EN</span>
               </button>
-            </div>
-          ) : (
-            <div className="flex items-center space-x-2">
-              <Link
-                href="/auth/signin"
-                className="px-3 py-1.5 rounded-lg text-xs font-medium text-text-secondary hover:text-text-primary hover:bg-secondary-bg transition-colors"
+              <button
+                onClick={() => {
+                  setLanguage('uz');
+                  setLangMenuOpen(false);
+                }}
+                className={`w-full px-3 py-1.5 text-left text-xs font-medium flex items-center justify-between ${
+                  settings.language === 'uz' ? 'text-[#FF5E3A] bg-[#FFF0EA] font-bold' : 'text-[#8A94A6] hover:bg-slate-50'
+                }`}
               >
-                {t.navSignIn}
-              </Link>
-              <Link
-                href="/auth/signup"
-                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-accent text-background hover:bg-accent-hover transition-colors shadow-sm"
+                <span>O&apos;zbekcha</span>
+                <span className="text-[10px]">UZ</span>
+              </button>
+              <button
+                onClick={() => {
+                  setLanguage('ru');
+                  setLangMenuOpen(false);
+                }}
+                className={`w-full px-3 py-1.5 text-left text-xs font-medium flex items-center justify-between ${
+                  settings.language === 'ru' ? 'text-[#FF5E3A] bg-[#FFF0EA] font-bold' : 'text-[#8A94A6] hover:bg-slate-50'
+                }`}
               >
-                {t.navSignUp}
-              </Link>
+                <span>Русский</span>
+                <span className="text-[10px]">RU</span>
+              </button>
             </div>
           )}
         </div>
 
-        {/* Mobile Menu Button */}
-        <div className="flex sm:hidden items-center space-x-2">
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-lg text-text-secondary hover:text-text-primary hover:bg-secondary-bg transition-colors"
-          >
-            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
-        </div>
-      </div>
+        {/* Flag / Practice Target */}
+        <Link
+          href="/practice"
+          title="Practice Center"
+          className={`p-2 rounded-full text-xs transition-colors ${
+            pathname.startsWith('/practice')
+              ? 'bg-[#FFF0EA] text-[#FF5E3A]'
+              : 'text-[#8A94A6] hover:text-[#1E232E] hover:bg-slate-50'
+          }`}
+        >
+          <Flag className="w-4 h-4" />
+        </Link>
 
-      {/* Mobile Drawer */}
-      {mobileMenuOpen && (
-        <div className="sm:hidden border-b border-border bg-secondary-bg px-4 py-4 space-y-3">
-          <div className="grid grid-cols-2 gap-2">
-            {navLinks.map((link) => {
-              const Icon = link.icon;
-              const isActive = pathname === link.href;
-              return (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-2 p-2.5 rounded-lg text-sm font-medium ${
-                    isActive ? 'bg-accent text-background font-bold' : 'text-text-secondary hover:bg-card-bg'
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span>{link.label}</span>
-                </Link>
-              );
-            })}
-          </div>
+        {/* Games */}
+        <Link
+          href="/games"
+          title="Arcade Typing Games"
+          className={`p-2 rounded-full text-xs transition-colors ${
+            pathname.startsWith('/games')
+              ? 'bg-[#FFF0EA] text-[#FF5E3A]'
+              : 'text-[#8A94A6] hover:text-[#1E232E] hover:bg-slate-50'
+          }`}
+        >
+          <Gamepad2 className="w-4 h-4" />
+        </Link>
 
-          <div className="pt-3 border-t border-border flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleSoundCycle}
-                className="px-2.5 py-1.5 rounded-lg bg-card-bg text-xs text-text-secondary flex items-center gap-1.5"
-              >
-                <Volume2 className="w-4 h-4 text-accent" />
-                <span className="capitalize">{soundTheme}</span>
-              </button>
-              <button
-                onClick={() => setLanguage(settings.language === 'en' ? 'uz' : settings.language === 'uz' ? 'ru' : 'en')}
-                className="px-2.5 py-1.5 rounded-lg bg-card-bg text-xs text-text-secondary flex items-center gap-1.5 font-mono uppercase"
-              >
-                <Globe className="w-4 h-4" />
-                <span>{settings.language}</span>
-              </button>
-            </div>
+        {/* Leaderboard Podium */}
+        <Link
+          href="/leaderboard"
+          title="Leaderboard Rankings"
+          className={`p-2 rounded-full text-xs transition-colors ${
+            pathname.startsWith('/leaderboard')
+              ? 'bg-[#FFF0EA] text-[#FF5E3A]'
+              : 'text-[#8A94A6] hover:text-[#1E232E] hover:bg-slate-50'
+          }`}
+        >
+          <BarChart2 className="w-4 h-4" />
+        </Link>
 
-            {session?.user ? (
-              <button
-                onClick={() => signOut()}
-                className="text-xs text-error hover:underline flex items-center gap-1"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                <span>{t.navSignIn ? 'Log out' : 'Chiqish'}</span>
-              </button>
-            ) : (
+        {/* Progress Analytics */}
+        <Link
+          href="/dashboard"
+          title="Typing Analytics"
+          className={`p-2 rounded-full text-xs transition-colors ${
+            pathname.startsWith('/dashboard')
+              ? 'bg-[#FFF0EA] text-[#FF5E3A]'
+              : 'text-[#8A94A6] hover:text-[#1E232E] hover:bg-slate-50'
+          }`}
+        >
+          <LineChart className="w-4 h-4" />
+        </Link>
+      </nav>
+
+      {/* Right Controls */}
+      <div className="flex items-center gap-2">
+        {/* Sound Circular Button */}
+        <button
+          onClick={handleSoundCycle}
+          title={`Audio Switch: ${soundTheme}`}
+          className="w-9 h-9 rounded-full bg-white hover:bg-[#FFF0EA] border border-border/80 flex items-center justify-center text-[#8A94A6] hover:text-[#FF5E3A] transition-all shadow-sm"
+        >
+          {isMuted || soundTheme === 'off' ? (
+            <VolumeX className="w-4 h-4 text-slate-400" />
+          ) : (
+            <Volume2 className="w-4 h-4 text-[#FF5E3A]" />
+          )}
+        </button>
+
+        {/* Search Circular Button */}
+        <Link
+          href="/practice"
+          title="Search word banks and lessons"
+          className="w-9 h-9 rounded-full bg-white hover:bg-slate-50 border border-border/80 flex items-center justify-center text-[#8A94A6] hover:text-[#1E232E] transition-all shadow-sm"
+        >
+          <Search className="w-4 h-4" />
+        </Link>
+
+        {/* Settings / Profile link button */}
+        <Link
+          href="/profile"
+          title="Preferences & Settings"
+          className="w-9 h-9 rounded-full bg-white hover:bg-slate-50 border border-border/80 flex items-center justify-center text-[#8A94A6] hover:text-[#1E232E] transition-all shadow-sm"
+        >
+          <Settings className="w-4 h-4" />
+        </Link>
+
+        {/* User Status / Coral Sign In Pill */}
+        {session?.user ? (
+          <div className="flex items-center gap-2">
+            {userRole === 'ADMIN' && (
               <Link
-                href="/auth/signin"
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-accent text-background"
+                href="/admin"
+                className="px-3 py-1.5 rounded-full text-xs font-semibold bg-[#FF5E3A] text-white shadow-coral hover:bg-[#FF471D] transition-all flex items-center gap-1"
               >
-                {t.navSignIn}
+                <Shield className="w-3.5 h-3.5" />
+                <span>Admin</span>
               </Link>
             )}
+
+            <Link
+              href="/profile"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-border shadow-sm text-xs font-medium text-[#1E232E] hover:border-[#FF5E3A] transition-colors"
+            >
+              <div className="w-5 h-5 rounded-full bg-[#FF5E3A]/20 text-[#FF5E3A] flex items-center justify-center font-bold text-[10px]">
+                {session.user.name?.[0]?.toUpperCase() || 'U'}
+              </div>
+              <span className="max-w-[80px] truncate">{session.user.name || 'User'}</span>
+            </Link>
+
+            <button
+              onClick={() => signOut({ callbackUrl: '/' })}
+              title="Sign Out"
+              className="p-2 text-[#8A94A6] hover:text-[#EB5757] transition-colors"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
-        </div>
-      )}
-    </nav>
+        ) : (
+          <Link
+            href="/auth/signin"
+            className="flex items-center gap-1.5 px-4 sm:px-5 py-2 rounded-full bg-[#FF5E3A] text-white text-xs font-semibold shadow-coral hover:bg-[#FF471D] hover:shadow-[0_6px_20px_rgba(255,94,58,0.45)] transition-all"
+          >
+            <User className="w-3.5 h-3.5" />
+            <span>Sign in</span>
+          </Link>
+        )}
+      </div>
+    </header>
   );
 }

@@ -4,16 +4,11 @@ import React, { useState } from 'react';
 import {
   RotateCcw,
   ArrowRight,
-  Share2,
   Copy,
   Check,
-  Download,
-  Flame,
-  Award,
-  Target,
   Zap,
+  Target,
   Activity,
-  AlertCircle,
 } from 'lucide-react';
 import {
   LineChart,
@@ -37,150 +32,130 @@ interface ResultsModalProps {
 export default function ResultsModal({ result, onRetry, onNewTest }: ResultsModalProps) {
   const [copied, setCopied] = useState(false);
 
-  // Trigger celebration confetti if speed is solid
   React.useEffect(() => {
-    if (result.wpm >= 60) {
+    if (result.wpm >= 50) {
       confetti({
-        particleCount: 80,
+        particleCount: 75,
         spread: 60,
         origin: { y: 0.6 },
-        colors: ['#E8B44F', '#42C98A', '#F5F5F5'],
+        colors: ['#FF5E3A', '#27AE60', '#FFF0EA'],
       });
     }
   }, [result.wpm]);
 
-  // Compute most frequently mistyped keys
   const sortedMistakes = Object.entries(result.mistakeDetails || {})
     .sort(([, a], [, b]) => b - a)
     .slice(0, 5);
 
   const handleCopy = () => {
-    const summary = `⚡ SirojbekTyping Test Results\nSpeed: ${result.wpm} WPM (Raw: ${result.rawWpm})\nAccuracy: ${result.accuracy}%\nConsistency: ${result.consistency}%\nTest: ${result.mode} (${result.duration}s)\nhttps://sirojbektyping.com`;
+    const summary = `⚡ SirojbekTyping Results\nSpeed: ${result.wpm} WPM (Raw: ${result.rawWpm})\nAccuracy: ${result.accuracy}%\nConsistency: ${result.consistency}%\nMode: ${result.mode} (${result.duration}s)\nhttps://sirojbektyping.com`;
     navigator.clipboard.writeText(summary);
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto my-4 p-6 sm:p-8 rounded-2xl bg-secondary-bg/95 border border-border shadow-2xl backdrop-blur-md animate-in fade-in zoom-in-95 duration-200">
+    <div className="w-full max-w-4xl mx-auto my-4 p-6 sm:p-8 rounded-3xl bg-white border border-border shadow-xl animate-in fade-in zoom-in-95 duration-200">
       {/* Top Header Metrics Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
         {/* WPM Primary */}
-        <div className="p-4 rounded-xl bg-card-bg border border-border relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-            <Zap className="w-12 h-12 text-accent" />
-          </div>
-          <span className="text-xs font-mono uppercase tracking-wider text-text-muted">
+        <div className="p-4 rounded-2xl bg-[#FFF6F2] border border-[#FFD7CC] relative overflow-hidden group">
+          <span className="text-xs font-mono uppercase tracking-wider text-[#8A94A6]">
             Net WPM
           </span>
-          <div className="text-4xl sm:text-5xl font-mono font-bold text-accent mt-1">
+          <div className="text-4xl sm:text-5xl font-bold text-[#FF5E3A] mt-1">
             {result.wpm}
           </div>
-          <span className="text-[11px] text-text-secondary mt-1 block">
-            Raw: <span className="text-text-primary font-mono">{result.rawWpm}</span>
+          <span className="text-[11px] text-[#8A94A6] mt-1 block">
+            Raw: <span className="text-[#1E232E] font-bold">{result.rawWpm}</span>
           </span>
         </div>
 
         {/* Accuracy */}
-        <div className="p-4 rounded-xl bg-card-bg border border-border relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-            <Target className="w-12 h-12 text-success" />
-          </div>
-          <span className="text-xs font-mono uppercase tracking-wider text-text-muted">
+        <div className="p-4 rounded-2xl bg-[#F0FAF4] border border-[#C6EFDC] relative overflow-hidden group">
+          <span className="text-xs font-mono uppercase tracking-wider text-[#8A94A6]">
             Accuracy
           </span>
-          <div className="text-4xl sm:text-5xl font-mono font-bold text-success mt-1">
+          <div className="text-4xl sm:text-5xl font-bold text-[#27AE60] mt-1">
             {result.accuracy}%
           </div>
-          <span className="text-[11px] text-text-secondary mt-1 block">
-            Errors: <span className="text-error font-mono">{result.errorCount}</span>
+          <span className="text-[11px] text-[#8A94A6] mt-1 block">
+            Errors: <span className="text-[#EB5757] font-bold">{result.errorCount}</span>
           </span>
         </div>
 
         {/* Consistency */}
-        <div className="p-4 rounded-xl bg-card-bg border border-border relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
-            <Activity className="w-12 h-12 text-text-primary" />
-          </div>
-          <span className="text-xs font-mono uppercase tracking-wider text-text-muted">
+        <div className="p-4 rounded-2xl bg-[#F8F9FA] border border-border relative overflow-hidden group">
+          <span className="text-xs font-mono uppercase tracking-wider text-[#8A94A6]">
             Consistency
           </span>
-          <div className="text-4xl sm:text-5xl font-mono font-bold text-text-primary mt-1">
+          <div className="text-4xl sm:text-5xl font-bold text-[#1E232E] mt-1">
             {result.consistency}%
           </div>
-          <span className="text-[11px] text-text-secondary mt-1 block">Smooth pacing</span>
+          <span className="text-[11px] text-[#8A94A6] mt-1 block">Rhythm variance</span>
         </div>
 
-        {/* Test Details */}
-        <div className="p-4 rounded-xl bg-card-bg border border-border relative overflow-hidden">
-          <span className="text-xs font-mono uppercase tracking-wider text-text-muted">
+        {/* Characters */}
+        <div className="p-4 rounded-2xl bg-[#F8F9FA] border border-border relative overflow-hidden">
+          <span className="text-xs font-mono uppercase tracking-wider text-[#8A94A6]">
             Characters
           </span>
-          <div className="text-2xl sm:text-3xl font-mono font-bold text-text-primary mt-1">
-            <span className="text-success">{result.correctChars}</span> /{' '}
-            <span className="text-error">{result.incorrectChars}</span>
+          <div className="text-2xl sm:text-3xl font-bold text-[#1E232E] mt-1">
+            <span className="text-[#27AE60]">{result.correctChars}</span> /{' '}
+            <span className="text-[#EB5757]">{result.incorrectChars}</span>
           </div>
-          <div className="text-[11px] text-text-secondary mt-2 flex items-center justify-between">
+          <div className="text-[11px] text-[#8A94A6] mt-2 flex items-center justify-between">
             <span>Duration:</span>
-            <span className="font-mono text-text-primary">{result.duration}s</span>
+            <span className="font-bold text-[#1E232E]">{result.duration}s</span>
           </div>
         </div>
       </div>
 
       {/* Speed Over Time Chart */}
       {result.timelineData && result.timelineData.length > 1 && (
-        <div className="p-4 rounded-xl bg-card-bg border border-border mb-6">
+        <div className="p-5 rounded-2xl bg-[#F8F9FA] border border-border mb-6">
           <div className="flex items-center justify-between mb-3 text-xs">
-            <span className="font-mono text-text-muted uppercase tracking-wider">
+            <span className="font-mono text-[#8A94A6] uppercase tracking-wider">
               Speed & Precision Timeline
             </span>
             <div className="flex items-center gap-4 text-[11px] font-mono">
-              <span className="flex items-center gap-1.5 text-accent">
-                <span className="w-2.5 h-2.5 rounded-full bg-accent inline-block" /> WPM
+              <span className="flex items-center gap-1.5 text-[#FF5E3A]">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#FF5E3A] inline-block" /> WPM
               </span>
-              <span className="flex items-center gap-1.5 text-text-muted">
-                <span className="w-2.5 h-2.5 rounded-full bg-text-muted inline-block" /> Raw WPM
-              </span>
-              <span className="flex items-center gap-1.5 text-error">
-                <span className="w-2 h-2 rounded-full bg-error inline-block" /> Errors
+              <span className="flex items-center gap-1.5 text-[#8A94A6]">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#A4ADC0] inline-block" /> Raw WPM
               </span>
             </div>
           </div>
 
-          <div className="h-48 w-full">
+          <div className="h-44 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={result.timelineData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#272B37" vertical={false} />
-                <XAxis
-                  dataKey="second"
-                  stroke="#5F6575"
-                  fontSize={11}
-                  tickLine={false}
-                  tickFormatter={(val) => `${val}s`}
-                />
-                <YAxis stroke="#5F6575" fontSize={11} tickLine={false} domain={[0, 'dataMax + 15']} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#E8ECF2" vertical={false} />
+                <XAxis dataKey="second" stroke="#8A94A6" fontSize={11} tickLine={false} tickFormatter={(v) => `${v}s`} />
+                <YAxis stroke="#8A94A6" fontSize={11} tickLine={false} domain={[0, 'dataMax + 10']} />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: '#181A20',
-                    borderColor: '#272B37',
-                    borderRadius: '8px',
+                    backgroundColor: '#FFFFFF',
+                    borderColor: '#E8ECF2',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 14px rgba(0,0,0,0.06)',
                     fontSize: '12px',
-                    color: '#F5F5F5',
+                    color: '#1E232E',
                   }}
-                  itemStyle={{ padding: '1px 0' }}
                 />
                 <Line
                   type="monotone"
                   dataKey="wpm"
-                  stroke="#E8B44F"
-                  strokeWidth={2.5}
+                  stroke="#FF5E3A"
+                  strokeWidth={3}
                   dot={false}
-                  activeDot={{ r: 5, fill: '#E8B44F' }}
+                  activeDot={{ r: 5, fill: '#FF5E3A' }}
                 />
                 <Line
                   type="monotone"
                   dataKey="rawWpm"
-                  stroke="#5F6575"
+                  stroke="#A4ADC0"
                   strokeWidth={1.5}
                   strokeDasharray="4 4"
                   dot={false}
@@ -191,61 +166,12 @@ export default function ResultsModal({ result, onRetry, onNewTest }: ResultsModa
         </div>
       )}
 
-      {/* Weak Keys & Heatmap */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <div className="lg:col-span-2">
-          <KeyboardHeatmap mistakeMap={result.mistakeDetails || {}} />
-        </div>
-
-        <div className="p-4 rounded-xl bg-card-bg border border-border flex flex-col justify-between">
-          <div>
-            <span className="text-xs font-mono uppercase tracking-wider text-text-muted block mb-3">
-              Most Mistyped Keys
-            </span>
-
-            {sortedMistakes.length > 0 ? (
-              <div className="space-y-2">
-                {sortedMistakes.map(([key, count]) => (
-                  <div
-                    key={key}
-                    className="flex items-center justify-between p-2 rounded-lg bg-secondary-bg border border-border/80 text-xs font-mono"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="w-6 h-6 rounded bg-card-bg border border-border flex items-center justify-center font-bold text-accent">
-                        {key.toUpperCase()}
-                      </span>
-                      <span className="text-text-secondary">Key</span>
-                    </div>
-                    <span className="text-error font-semibold">
-                      {count} miss{count > 1 ? 'es' : ''}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-28 text-center text-xs text-success">
-                <Check className="w-8 h-8 mb-1" />
-                <span>Zero key misses! Clean run.</span>
-              </div>
-            )}
-          </div>
-
-          <div className="mt-4 pt-3 border-t border-border/80 text-[11px] text-text-muted">
-            Tip: Practice your weak keys in the{' '}
-            <a href="/practice" className="text-accent underline">
-              Practice Center
-            </a>
-            .
-          </div>
-        </div>
-      </div>
-
       {/* Action Buttons Bar */}
       <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-border">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <button
             onClick={onRetry}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-accent text-background font-semibold text-sm hover:bg-accent-hover transition-colors shadow-sm"
+            className="flex items-center gap-2 px-6 py-3 rounded-full bg-[#FF5E3A] text-white font-bold text-xs shadow-coral hover:bg-[#FF471D] transition-transform active:scale-95"
           >
             <RotateCcw className="w-4 h-4" />
             <span>Retry Test (Tab + Enter)</span>
@@ -253,31 +179,29 @@ export default function ResultsModal({ result, onRetry, onNewTest }: ResultsModa
 
           <button
             onClick={onNewTest}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-card-bg hover:bg-elevated-bg border border-border text-sm text-text-primary transition-colors"
+            className="flex items-center gap-2 px-5 py-3 rounded-full bg-white hover:bg-slate-50 border border-border text-xs font-semibold text-[#1E232E] transition-colors shadow-sm"
           >
-            <span>Next Words</span>
+            <span>Next Test</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleCopy}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-secondary-bg hover:bg-card-bg border border-border text-xs text-text-secondary hover:text-text-primary transition-colors"
-          >
-            {copied ? (
-              <>
-                <Check className="w-3.5 h-3.5 text-success" />
-                <span className="text-success">Copied!</span>
-              </>
-            ) : (
-              <>
-                <Copy className="w-3.5 h-3.5" />
-                <span>Copy Summary</span>
-              </>
-            )}
-          </button>
-        </div>
+        <button
+          onClick={handleCopy}
+          className="flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-white hover:bg-slate-50 border border-border text-xs font-medium text-[#8A94A6] hover:text-[#1E232E] transition-colors shadow-sm"
+        >
+          {copied ? (
+            <>
+              <Check className="w-3.5 h-3.5 text-[#27AE60]" />
+              <span className="text-[#27AE60] font-semibold">Copied!</span>
+            </>
+          ) : (
+            <>
+              <Copy className="w-3.5 h-3.5" />
+              <span>Copy Summary</span>
+            </>
+          )}
+        </button>
       </div>
     </div>
   );

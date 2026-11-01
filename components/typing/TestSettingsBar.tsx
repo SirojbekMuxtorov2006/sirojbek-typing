@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import { Clock, Type, Quote, Hash, AtSign, Settings2, Sparkles, Feather } from 'lucide-react';
+import React, { useState } from 'react';
+import { ChevronDown, Globe } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 
 interface TestSettingsBarProps {
@@ -17,7 +17,11 @@ export default function TestSettingsBar({ onRestart, disabled = false }: TestSet
     setWordCount,
     togglePunctuation,
     toggleNumbers,
+    setLanguage,
   } = useAppStore();
+
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
+  const [langMenuOpen, setLangMenuOpen] = useState(false);
 
   const handleModeChange = (mode: typeof settings.mode) => {
     if (disabled) return;
@@ -38,136 +42,202 @@ export default function TestSettingsBar({ onRestart, disabled = false }: TestSet
   };
 
   return (
-    <div className="flex flex-wrap items-center justify-center gap-1.5 p-1.5 rounded-xl bg-secondary-bg/80 border border-border text-xs text-text-secondary select-none shadow-sm backdrop-blur-sm">
-      {/* Modes */}
-      <div className="flex items-center space-x-1 pr-2 border-r border-border/80">
+    <div className="w-full flex flex-wrap items-center justify-center gap-2.5 select-none font-sans text-xs">
+      {/* Pill 1: @ punctuation and # numbers */}
+      <div className="flex items-center bg-white px-3 py-1.5 rounded-full border border-border/90 shadow-sm gap-3">
         <button
           onClick={togglePunctuation}
-          className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition-colors ${
+          className={`flex items-center gap-1.5 transition-colors ${
             settings.punctuation
-              ? 'text-accent bg-accent-muted font-medium'
-              : 'hover:text-text-primary hover:bg-card-bg'
+              ? 'text-[#FF5E3A] font-semibold'
+              : 'text-[#8A94A6] hover:text-[#1E232E]'
           }`}
-          title="Toggle punctuation"
         >
-          <AtSign className="w-3.5 h-3.5" />
-          <span>punctuation</span>
+          <span>@ punctuation</span>
+          <span
+            className={`w-1.5 h-1.5 rounded-full ${
+              settings.punctuation ? 'bg-[#FF5E3A]' : 'bg-[#D0D7E2]'
+            }`}
+          />
         </button>
 
         <button
           onClick={toggleNumbers}
-          className={`flex items-center gap-1 px-2.5 py-1 rounded-lg transition-colors ${
+          className={`flex items-center gap-1.5 transition-colors ${
             settings.numbers
-              ? 'text-accent bg-accent-muted font-medium'
-              : 'hover:text-text-primary hover:bg-card-bg'
+              ? 'text-[#FF5E3A] font-semibold'
+              : 'text-[#8A94A6] hover:text-[#1E232E]'
           }`}
-          title="Toggle numbers"
         >
-          <Hash className="w-3.5 h-3.5" />
-          <span>numbers</span>
+          <span># numbers</span>
+          <span
+            className={`w-1.5 h-1.5 rounded-full ${
+              settings.numbers ? 'bg-[#FF5E3A]' : 'bg-[#D0D7E2]'
+            }`}
+          />
         </button>
       </div>
 
-      {/* Main Mode Selectors */}
-      <div className="flex items-center space-x-1 px-2">
-        <button
-          onClick={() => handleModeChange('time')}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-colors ${
-            settings.mode === 'time'
-              ? 'text-accent bg-accent-muted font-medium'
-              : 'hover:text-text-primary hover:bg-card-bg'
-          }`}
-        >
-          <Clock className="w-3.5 h-3.5" />
-          <span>time</span>
-        </button>
+      {/* Pill 2: 15s 30s 60s words ... more ⌄ */}
+      <div className="flex items-center bg-white px-2 py-1.5 rounded-full border border-border/90 shadow-sm gap-1">
+        {[15, 30, 60].map((dur) => (
+          <button
+            key={dur}
+            onClick={() => {
+              if (settings.mode !== 'time') setMode('time');
+              handleDurationChange(dur);
+            }}
+            className={`px-2.5 py-1 rounded-full font-medium transition-colors ${
+              settings.mode === 'time' && settings.duration === dur
+                ? 'bg-[#FFF0EA] text-[#FF5E3A] font-bold shadow-sm'
+                : 'text-[#8A94A6] hover:text-[#1E232E]'
+            }`}
+          >
+            {dur}s
+          </button>
+        ))}
 
+        {/* T words */}
         <button
           onClick={() => handleModeChange('words')}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-colors ${
+          className={`flex items-center gap-1 px-3 py-1 rounded-full font-medium transition-colors ${
             settings.mode === 'words'
-              ? 'text-accent bg-accent-muted font-medium'
-              : 'hover:text-text-primary hover:bg-card-bg'
+              ? 'bg-[#FFF0EA] text-[#FF5E3A] font-bold shadow-sm'
+              : 'text-[#8A94A6] hover:text-[#1E232E]'
           }`}
         >
-          <Type className="w-3.5 h-3.5" />
+          <span className="font-serif text-[11px] font-bold px-0.5">T</span>
           <span>words</span>
         </button>
 
-        <button
-          onClick={() => handleModeChange('quote')}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-colors ${
-            settings.mode === 'quote'
-              ? 'text-accent bg-accent-muted font-medium'
-              : 'hover:text-text-primary hover:bg-card-bg'
-          }`}
-        >
-          <Quote className="w-3.5 h-3.5" />
-          <span>quote</span>
-        </button>
+        {/* More dropdown */}
+        <div className="relative">
+          <button
+            onClick={() => setMoreMenuOpen(!moreMenuOpen)}
+            className={`flex items-center gap-1 px-2.5 py-1 rounded-full transition-colors ${
+              ['quote', 'zen', 'custom'].includes(settings.mode)
+                ? 'bg-[#FFF0EA] text-[#FF5E3A] font-bold'
+                : 'text-[#8A94A6] hover:text-[#1E232E]'
+            }`}
+          >
+            <span>... more</span>
+            <ChevronDown className="w-3 h-3" />
+          </button>
 
-        <button
-          onClick={() => handleModeChange('zen')}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-colors ${
-            settings.mode === 'zen'
-              ? 'text-accent bg-accent-muted font-medium'
-              : 'hover:text-text-primary hover:bg-card-bg'
-          }`}
-          title="Zen mode (freeflow without timer pressure)"
-        >
-          <Feather className="w-3.5 h-3.5" />
-          <span>zen</span>
-        </button>
-
-        <button
-          onClick={() => handleModeChange('custom')}
-          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-colors ${
-            settings.mode === 'custom'
-              ? 'text-accent bg-accent-muted font-medium'
-              : 'hover:text-text-primary hover:bg-card-bg'
-          }`}
-        >
-          <Settings2 className="w-3.5 h-3.5" />
-          <span>custom</span>
-        </button>
+          {moreMenuOpen && (
+            <div
+              className="absolute left-0 mt-2 w-32 bg-white rounded-2xl border border-border shadow-xl py-1 z-50 animate-in fade-in"
+              onMouseLeave={() => setMoreMenuOpen(false)}
+            >
+              <button
+                onClick={() => {
+                  handleModeChange('quote');
+                  setMoreMenuOpen(false);
+                }}
+                className={`w-full px-3 py-1.5 text-left text-xs font-medium ${
+                  settings.mode === 'quote' ? 'text-[#FF5E3A] bg-[#FFF0EA]' : 'text-[#8A94A6] hover:bg-slate-50'
+                }`}
+              >
+                Quote
+              </button>
+              <button
+                onClick={() => {
+                  handleModeChange('zen');
+                  setMoreMenuOpen(false);
+                }}
+                className={`w-full px-3 py-1.5 text-left text-xs font-medium ${
+                  settings.mode === 'zen' ? 'text-[#FF5E3A] bg-[#FFF0EA]' : 'text-[#8A94A6] hover:bg-slate-50'
+                }`}
+              >
+                Zen Mode
+              </button>
+              <button
+                onClick={() => {
+                  handleModeChange('custom');
+                  setMoreMenuOpen(false);
+                }}
+                className={`w-full px-3 py-1.5 text-left text-xs font-medium ${
+                  settings.mode === 'custom' ? 'text-[#FF5E3A] bg-[#FFF0EA]' : 'text-[#8A94A6] hover:bg-slate-50'
+                }`}
+              >
+                Custom Text
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Sub-options based on mode */}
-      {settings.mode === 'time' && (
-        <div className="flex items-center space-x-1 pl-2 border-l border-border/80 font-mono">
-          {[15, 30, 60, 120].map((dur) => (
-            <button
-              key={dur}
-              onClick={() => handleDurationChange(dur)}
-              className={`px-2 py-0.5 rounded-md transition-colors ${
-                settings.duration === dur
-                  ? 'text-accent bg-accent-muted font-bold'
-                  : 'hover:text-text-primary hover:bg-card-bg'
-              }`}
-            >
-              {dur}
-            </button>
-          ))}
-        </div>
-      )}
+      {/* Pill 3: Word count 10 25 50 100 */}
+      <div className="flex items-center bg-white px-2 py-1.5 rounded-full border border-border/90 shadow-sm gap-1">
+        {[10, 25, 50, 100].map((count) => (
+          <button
+            key={count}
+            onClick={() => handleWordCountChange(count)}
+            className={`px-2.5 py-1 rounded-full font-medium transition-colors ${
+              settings.wordCount === count
+                ? 'bg-[#FFF0EA] text-[#FF5E3A] font-bold shadow-sm'
+                : 'text-[#8A94A6] hover:text-[#1E232E]'
+            }`}
+          >
+            {count}
+          </button>
+        ))}
+      </div>
 
-      {settings.mode === 'words' && (
-        <div className="flex items-center space-x-1 pl-2 border-l border-border/80 font-mono">
-          {[10, 25, 50, 100].map((count) => (
+      {/* Pill 4: English 200 / Language */}
+      <div className="relative">
+        <button
+          onClick={() => setLangMenuOpen(!langMenuOpen)}
+          className="flex items-center gap-1.5 bg-white px-3.5 py-1.5 rounded-full border border-border/90 shadow-sm text-[#8A94A6] hover:text-[#1E232E] transition-colors"
+        >
+          <Globe className="w-3.5 h-3.5" />
+          <span>
+            {settings.language === 'en'
+              ? 'english 200'
+              : settings.language === 'uz'
+              ? 'oʻzbekcha'
+              : 'русский'}
+          </span>
+        </button>
+
+        {langMenuOpen && (
+          <div
+            className="absolute right-0 mt-2 w-36 bg-white rounded-2xl border border-border shadow-xl py-1.5 z-50 animate-in fade-in"
+            onMouseLeave={() => setLangMenuOpen(false)}
+          >
             <button
-              key={count}
-              onClick={() => handleWordCountChange(count)}
-              className={`px-2 py-0.5 rounded-md transition-colors ${
-                settings.wordCount === count
-                  ? 'text-accent bg-accent-muted font-bold'
-                  : 'hover:text-text-primary hover:bg-card-bg'
-              }`}
+              onClick={() => {
+                setLanguage('en');
+                setLangMenuOpen(false);
+                onRestart();
+              }}
+              className="w-full px-3 py-1.5 text-left text-xs text-[#8A94A6] hover:bg-slate-50 hover:text-[#1E232E]"
             >
-              {count}
+              English 200
             </button>
-          ))}
-        </div>
-      )}
+            <button
+              onClick={() => {
+                setLanguage('uz');
+                setLangMenuOpen(false);
+                onRestart();
+              }}
+              className="w-full px-3 py-1.5 text-left text-xs text-[#8A94A6] hover:bg-slate-50 hover:text-[#1E232E]"
+            >
+              O&apos;zbekcha (Lotin)
+            </button>
+            <button
+              onClick={() => {
+                setLanguage('ru');
+                setLangMenuOpen(false);
+                onRestart();
+              }}
+              className="w-full px-3 py-1.5 text-left text-xs text-[#8A94A6] hover:bg-slate-50 hover:text-[#1E232E]"
+            >
+              Русский
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

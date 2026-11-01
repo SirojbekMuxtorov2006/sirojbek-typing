@@ -1,14 +1,12 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { RotateCcw, Volume2, VolumeX, AlertCircle } from 'lucide-react';
+import { RotateCcw, Clock, Calendar, Target } from 'lucide-react';
 import TestSettingsBar from './TestSettingsBar';
 import ResultsModal from './ResultsModal';
+import OnlyTypingKeyboard from './OnlyTypingKeyboard';
 import { useAppStore, TypingResultPayload } from '@/lib/store';
-import {
-  generateTestText,
-  generateWeakKeyText,
-} from '@/lib/word-banks';
+import { generateTestText } from '@/lib/word-banks';
 import {
   calculateWpm,
   calculateRawWpm,
@@ -33,30 +31,40 @@ export default function TypingTest({
 
   // Test state
   const [text, setText] = useState<string>('');
-  const [userInput, setUserInput] = useState<string>('');
+  const [wordsList, setWordsList] = useState<string[]>([]);
+  const [currentWordIndex, setCurrentWordIndex] = useState<number>(0);
+  const [currentInput, setCurrentInput] = useState<string>('');
+  const [completedWords, setCompletedWords] = useState<string[]>([]);
+
   const [isTestActive, setIsTestActive] = useState<boolean>(false);
   const [isFinished, setIsFinished] = useState<boolean>(false);
   const [timeLeft, setTimeLeft] = useState<number>(settings.duration);
   const [startTime, setStartTime] = useState<number | null>(null);
 
-  // Live stats
+  // Live metrics
   const [liveWpm, setLiveWpm] = useState<number>(0);
-  const [liveRawWpm, setLiveRawWpm] = useState<number>(0);
-  const [liveAccuracy, setLiveAccuracy] = useState<number>(100);
   const [correctKeystrokes, setCorrectKeystrokes] = useState<number>(0);
   const [totalKeystrokes, setTotalKeystrokes] = useState<number>(0);
 
-  // Tracking details
+  // Tracking
   const mistakeMapRef = useRef<Record<string, number>>({});
   const secondMetricsRef = useRef<SecondMetric[]>([]);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Completed result state
+  // Completed result
   const [completedResult, setCompletedResult] = useState<TypingResultPayload | null>(null);
 
-  // Initialize or reset text
+  // Dynamic greeting based on time of day
+  const [greeting, setGreeting] = useState('Good afternoon.');
+  useEffect(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) setGreeting('Good morning.');
+    else if (hour < 18) setGreeting('Good afternoon.');
+    else setGreeting('Good evening.');
+  }, []);
+
+  // Initialize or reset test
   const initTestText = useCallback(() => {
     let generated = '';
     if (customProvidedText && customProvidedText.length > 0) {
@@ -71,15 +79,19 @@ export default function TypingTest({
         customText: settings.customText,
       });
     }
+
     setText(generated);
-    setUserInput('');
+    const splitWords = generated.split(' ');
+    setWordsList(splitWords);
+    setCurrentWordIndex(0);
+    setCurrentInput('');
+    setCompletedWords([]);
+
     setIsTestActive(false);
     setIsFinished(false);
     setTimeLeft(settings.duration);
     setStartTime(null);
     setLiveWpm(0);
-    setLiveRawWpm(0);
-    setLiveAccuracy(100);
     setCorrectKeystrokes(0);
     setTotalKeystrokes(0);
     mistakeMapRef.current = {};
@@ -97,13 +109,13 @@ export default function TypingTest({
   }, [
     customProvidedText,
     initialMode,
+    settings.customText,
     settings.duration,
     settings.language,
     settings.mode,
     settings.numbers,
     settings.punctuation,
     settings.wordCount,
-    settings.customText,
   ]);
 
   useEffect(() => {
@@ -126,14 +138,7 @@ export default function TypingTest({
     const finalAcc = calculateAccuracy(correctKeystrokes, totalKeystrokes);
     const finalConsistency = calculateConsistency(secondMetricsRef.current);
 
-    // Count character stats
-    let correct = 0;
-    let incorrect = 0;
-    const minLen = Math.min(text.length, userInput.length);
-    for (let i = 0; i < minLen; i++) {
-      if (userInput[i] === text[i]) correct++;
-      else incorrect++;
-    }
+    const incorrect = Object.values(mistakeMapRef.current).reduce((a, b) => a + b, 0);
 
     const payload: TypingResultPayload = {
       wpm: finalWpm,
@@ -142,9 +147,9 @@ export default function TypingTest({
       consistency: finalConsistency,
       duration: Math.round(elapsed),
       errorCount: incorrect,
-      correctChars: correct,
+      correctChars: correctKeystrokes,
       incorrectChars: incorrect,
-      extraChars: Math.max(0, userInput.length - text.length),
+      extraChars: 0,
       mistakeDetails: { ...mistakeMapRef.current },
       timelineData: [...secondMetricsRef.current],
       mode: initialMode || settings.mode,
@@ -158,7 +163,7 @@ export default function TypingTest({
       onFinish(payload);
     }
 
-    // Submit score to database API
+    // Submit score to API
     try {
       await fetch('/api/typing-results', {
         method: 'POST',
@@ -179,9 +184,7 @@ export default function TypingTest({
     settings.language,
     settings.mode,
     startTime,
-    text,
     totalKeystrokes,
-    userInput,
   ]);
 
   // Timer tick for time mode
@@ -196,7 +199,6 @@ export default function TypingTest({
           const nextTime = prev - 1;
           const elapsed = settings.duration - nextTime;
 
-          // Record second-by-second metric for charts & consistency
           const curWpm = calculateWpm(correctKeystrokes, elapsed);
           const curRaw = calculateRawWpm(totalKeystrokes, elapsed);
           const curAcc = calculateAccuracy(correctKeystrokes, totalKeystrokes);
@@ -210,9 +212,6 @@ export default function TypingTest({
           });
 
           setLiveWpm(curWpm);
-          setLiveRawWpm(curRaw);
-          setLiveAccuracy(curAcc);
-
           return nextTime;
         });
       }, 1000);
@@ -237,74 +236,81 @@ export default function TypingTest({
     if (isFinished) return;
 
     const val = e.target.value;
-    const isFirstKeystroke = !isTestActive && val.length === 1;
+    const isFirstKeystroke = !isTestActive && val.length > 0;
 
-    // Start timer on first keystroke
     if (isFirstKeystroke) {
       setIsTestActive(true);
       setStartTime(Date.now());
     }
 
-    const lastCharIdx = val.length - 1;
-    const isAdding = val.length > userInput.length;
+    const targetWord = wordsList[currentWordIndex] || '';
 
-    if (isAdding && lastCharIdx < text.length) {
-      const typedChar = val[lastCharIdx];
-      const expectedChar = text[lastCharIdx];
-      const isCorrect = typedChar === expectedChar;
+    // Handle space key -> advance to next word
+    if (val.endsWith(' ')) {
+      const typedWord = val.trim();
+      const isWordCorrect = typedWord === targetWord;
 
-      // Play synthesized audio click
-      sound.playKeypress(!isCorrect);
+      sound.playKeypress(!isWordCorrect);
+
+      setTotalKeystrokes((prev) => prev + 1); // count the space keystroke
+      if (isWordCorrect) {
+        setCorrectKeystrokes((prev) => prev + targetWord.length + 1);
+      } else {
+        mistakeMapRef.current['Space'] = (mistakeMapRef.current['Space'] || 0) + 1;
+      }
+
+      setCompletedWords((prev) => [...prev, typedWord]);
+      setCurrentInput('');
+
+      const nextIndex = currentWordIndex + 1;
+      if (nextIndex >= wordsList.length) {
+        handleFinishTest();
+      } else {
+        setCurrentWordIndex(nextIndex);
+      }
+      return;
+    }
+
+    // Key-by-key evaluation inside current word
+    const isAdding = val.length > currentInput.length;
+    if (isAdding) {
+      const charIndex = val.length - 1;
+      const expectedChar = targetWord[charIndex];
+      const typedChar = val[charIndex];
+      const isCharCorrect = typedChar === expectedChar;
+
+      sound.playKeypress(!isCharCorrect);
 
       setTotalKeystrokes((prev) => prev + 1);
-      if (isCorrect) {
+      if (isCharCorrect) {
         setCorrectKeystrokes((prev) => prev + 1);
-      } else {
-        const key = expectedChar === ' ' ? 'Space' : expectedChar.toLowerCase();
-        mistakeMapRef.current[key] = (mistakeMapRef.current[key] || 0) + 1;
+      } else if (expectedChar) {
+        const k = expectedChar.toLowerCase();
+        mistakeMapRef.current[k] = (mistakeMapRef.current[k] || 0) + 1;
       }
     }
 
-    setUserInput(val);
-
-    // Check completion in word count or quote mode
-    if (
-      (settings.mode === 'words' || settings.mode === 'quote' || settings.mode === 'custom') &&
-      val.length >= text.length
-    ) {
-      setTimeout(() => {
-        handleFinishTest();
-      }, 50);
-    }
+    setCurrentInput(val);
   };
 
-  // Prevent paste during standard tests
-  const handlePaste = (e: React.ClipboardEvent) => {
-    if (settings.mode !== 'custom') {
-      e.preventDefault();
-    }
-  };
-
-  // Keyboard shortcut listener for quick restart (Tab + Enter or Esc)
+  // Keyboard shortcut listener for restart
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        initTestText();
-      } else if (e.key === 'Enter' && e.shiftKey) {
+      if (e.key === 'Escape' || (e.key === 'Enter' && e.shiftKey)) {
         e.preventDefault();
         initTestText();
       }
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [initTestText]);
 
-  // Click on area to focus input
-  const handleFocusClick = () => {
-    inputRef.current?.focus();
-  };
+  // Current active character target for virtual keyboard
+  const activeWord = wordsList[currentWordIndex] || '';
+  const activeChar =
+    currentInput.length < activeWord.length
+      ? activeWord[currentInput.length]
+      : ' ';
 
   if (isFinished && completedResult) {
     return (
@@ -317,58 +323,61 @@ export default function TypingTest({
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto flex flex-col items-center">
-      {/* Top Test Settings Bar */}
-      <div className="mb-6 w-full flex justify-center">
+    <div className="w-full max-w-4xl mx-auto flex flex-col items-center select-none font-sans">
+      {/* 1. Mode Selection Floating Pills Bar */}
+      <div className="mb-8 w-full flex justify-center">
         <TestSettingsBar onRestart={initTestText} disabled={isTestActive} />
       </div>
 
-      {/* Live Stats Header */}
-      <div className="w-full flex items-center justify-between mb-4 px-3 font-mono text-xs">
-        <div className="flex items-center space-x-6">
-          <div className="flex flex-col">
-            <span className="text-[10px] uppercase tracking-wider text-text-muted">
-              {settings.mode === 'time' ? 'Time Left' : 'Progress'}
-            </span>
-            <span className="text-xl font-bold text-accent">
-              {settings.mode === 'time' ? `${timeLeft}s` : `${userInput.length}/${text.length}`}
-            </span>
-          </div>
-
-          <div className="flex flex-col">
-            <span className="text-[10px] uppercase tracking-wider text-text-muted">Live WPM</span>
-            <span className="text-xl font-bold text-text-primary">{liveWpm}</span>
-          </div>
-
-          <div className="flex flex-col">
-            <span className="text-[10px] uppercase tracking-wider text-text-muted">Accuracy</span>
-            <span className="text-xl font-bold text-success">{liveAccuracy}%</span>
-          </div>
+      {/* 2. Greeting and Quests Row - exactly matching the screenshot! */}
+      <div className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 px-1">
+        <div>
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1E232E]">
+            {greeting}
+          </h2>
+          <p className="text-xs text-[#8A94A6] mt-0.5">
+            Best <strong className="text-[#1E232E] font-semibold">32 wpm</strong> •{' '}
+            <strong className="text-[#1E232E] font-semibold">28</strong> to go until your goal of 60.
+          </p>
         </div>
 
-        <button
-          onClick={initTestText}
-          title="Restart Test (Esc)"
-          className="p-2 rounded-lg bg-secondary-bg hover:bg-card-bg border border-border text-text-secondary hover:text-accent transition-colors flex items-center gap-1.5"
-        >
-          <RotateCcw className="w-4 h-4" />
-          <span className="text-[11px] hidden sm:inline">Restart</span>
-        </button>
+        <div className="flex items-center gap-2 flex-wrap text-xs font-medium">
+          {/* 1 day streak */}
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-[#FFD7CC] text-[#FF5E3A] shadow-sm">
+            <Clock className="w-3.5 h-3.5" />
+            <span>1 day</span>
+          </div>
+
+          {/* Today's challenge */}
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-[#FFD7CC] text-[#FF5E3A] shadow-sm">
+            <Calendar className="w-3.5 h-3.5" />
+            <span>today&apos;s challenge</span>
+          </div>
+
+          {/* Quests */}
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-[#FFD7CC] text-[#FF5E3A] shadow-sm">
+            <Target className="w-3.5 h-3.5" />
+            <span>quests</span>
+            <span className="text-[#FFB8A5] font-bold">•••</span>
+          </div>
+
+          {/* Circular level progress badge */}
+          <div className="relative w-8 h-8 rounded-full bg-white border-2 border-[#E8ECF2] border-t-[#FF5E3A] flex items-center justify-center font-bold text-xs text-[#1E232E] shadow-sm">
+            <span>1</span>
+          </div>
+        </div>
       </div>
 
-      {/* Main Interactive Typing Area */}
+      {/* 3. Main Typing Text Flow */}
       <div
-        ref={containerRef}
-        onClick={handleFocusClick}
-        className="w-full min-h-[160px] p-6 sm:p-8 rounded-2xl bg-secondary-bg/90 border border-border hover:border-border-light transition-all cursor-text relative select-none leading-relaxed tracking-wide font-mono text-xl sm:text-2xl shadow-lg backdrop-blur-sm"
+        onClick={() => inputRef.current?.focus()}
+        className="w-full min-h-[180px] p-2 sm:p-4 cursor-text relative select-none leading-relaxed tracking-wide text-2xl sm:text-3xl font-sans font-bold mb-6 focus:outline-none"
       >
-        {/* Hidden Input field capturing keystrokes */}
         <input
           ref={inputRef}
           type="text"
-          value={userInput}
+          value={currentInput}
           onChange={handleInputChange}
-          onPaste={handlePaste}
           className="absolute opacity-0 pointer-events-none inset-0 w-full h-full"
           autoFocus
           spellCheck={false}
@@ -376,61 +385,98 @@ export default function TypingTest({
           autoCapitalize="off"
         />
 
-        {/* Character by character rendering */}
-        <div className="flex flex-wrap gap-y-2 text-text-muted">
-          {text.split('').map((char, index) => {
-            const isTyped = index < userInput.length;
-            const typedChar = userInput[index];
-            const isCurrent = index === userInput.length;
-            const isCorrect = isTyped && typedChar === char;
-            const isIncorrect = isTyped && !isCorrect;
+        {/* Word by word rendering matching screenshot 1 and 2 */}
+        <div className="flex flex-wrap gap-x-4 gap-y-3.5 items-baseline text-[#8C96A8]">
+          {wordsList.map((word, wordIdx) => {
+            const isCompleted = wordIdx < currentWordIndex;
+            const isCurrent = wordIdx === currentWordIndex;
 
-            let charColor = 'text-text-muted';
-            if (isCorrect) charColor = 'text-text-primary';
-            if (isIncorrect) charColor = 'text-error bg-error/15 rounded-sm';
-
-            return (
-              <span key={index} className="relative inline-block">
-                {/* Smooth blinking vertical caret at current cursor position */}
-                {isCurrent && (
-                  <span className="absolute -left-[1px] top-1 bottom-1 w-[2.5px] bg-accent rounded-full animate-blink z-10" />
-                )}
-                <span className={charColor}>
-                  {char === ' ' && isIncorrect ? '_' : char}
+            if (isCompleted) {
+              return (
+                <span key={wordIdx} className="text-[#8C96A8]/75 transition-colors">
+                  {word}
                 </span>
+              );
+            }
+
+            if (isCurrent) {
+              const activeCharIndex = currentInput.length;
+              return (
+                <span
+                  key={wordIdx}
+                  className="inline-flex items-center bg-[#FFF0EA] rounded-xl px-1 py-0.5 shadow-sm transition-all"
+                >
+                  {word.split('').map((char, charIdx) => {
+                    const isTyped = charIdx < currentInput.length;
+                    const isCharCurrent = charIdx === activeCharIndex;
+                    const isCharCorrect = isTyped && currentInput[charIdx] === char;
+                    const isCharIncorrect = isTyped && !isCharCorrect;
+
+                    if (isCharCurrent) {
+                      // EXACT active character box: vivid coral box with crisp white letter!
+                      return (
+                        <span
+                          key={charIdx}
+                          className="inline-flex items-center justify-center bg-[#FF5E3A] text-white rounded-lg px-2 py-0.5 font-bold shadow-[0_4px_12px_rgba(255,94,58,0.45)] animate-in zoom-in-95 duration-150"
+                        >
+                          {char}
+                        </span>
+                      );
+                    }
+
+                    if (isCharIncorrect) {
+                      return (
+                        <span
+                          key={charIdx}
+                          className="text-[#EB5757] bg-red-100 rounded px-1 underline"
+                        >
+                          {char}
+                        </span>
+                      );
+                    }
+
+                    if (isCharCorrect) {
+                      return (
+                        <span key={charIdx} className="text-[#2D3748] px-0.5">
+                          {char}
+                        </span>
+                      );
+                    }
+
+                    return (
+                      <span key={charIdx} className="text-[#4A5568] px-0.5">
+                        {char}
+                      </span>
+                    );
+                  })}
+                </span>
+              );
+            }
+
+            // Untyped future words
+            return (
+              <span key={wordIdx} className="text-[#8C96A8]">
+                {word}
               </span>
             );
           })}
         </div>
-
-        {/* Start Hint */}
-        {!isTestActive && userInput.length === 0 && (
-          <div className="mt-6 flex items-center justify-center text-xs text-text-muted font-mono gap-2">
-            <span className="w-2 h-2 rounded-full bg-accent animate-ping" />
-            <span>Type any character to start the test • Tab + Enter to restart</span>
-          </div>
-        )}
       </div>
 
-      {/* Bottom Shortcuts Hint Bar */}
-      <div className="mt-4 flex items-center justify-between w-full text-xs text-text-muted font-mono px-2">
-        <div className="flex items-center gap-3">
-          <span>
-            <kbd className="px-1.5 py-0.5 rounded bg-secondary-bg border border-border text-text-secondary text-[11px]">
-              Esc
-            </kbd>{' '}
-            restart
-          </span>
-          <span>
-            <kbd className="px-1.5 py-0.5 rounded bg-secondary-bg border border-border text-text-secondary text-[11px]">
-              Shift+Enter
-            </kbd>{' '}
-            restart
-          </span>
-        </div>
-        <div className="text-[11px] text-text-secondary">
-          Sound: <span className="text-accent capitalize">{soundTheme}</span>
-        </div>
+      {/* 4. Center Circular Reload Button */}
+      <div className="flex justify-center mb-8">
+        <button
+          onClick={initTestText}
+          title="Restart Test (Esc)"
+          className="w-11 h-11 rounded-full bg-white hover:bg-[#FFF0EA] border border-border shadow-sm flex items-center justify-center text-[#8A94A6] hover:text-[#FF5E3A] hover:border-[#FF5E3A] transition-all"
+        >
+          <RotateCcw className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* 5. Bottom Virtual Keyboard (exact soft peach design from screenshot!) */}
+      <div className="w-full">
+        <OnlyTypingKeyboard activeChar={activeChar} />
       </div>
     </div>
   );
