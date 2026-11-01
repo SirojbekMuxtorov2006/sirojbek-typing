@@ -165,3 +165,4 @@ The application will be running on `http://localhost:3000` with PostgreSQL conne
 ---
 
 Developed with ❤️ by **Sirojbek**. Designed for pure typing flow.
+# sirojbek-typing
