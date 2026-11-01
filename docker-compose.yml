@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  # Next.js Application
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sirojbek_typing_web
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://sirojbek:sirojbek_secret_2026@postgres:5432/sirojbek_typing?schema=public
+      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_SECRET=sirojbek-typing-super-secret-key-production-change-in-prod
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: sirojbek_typing_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: sirojbek
+      POSTGRES_PASSWORD: sirojbek_secret_2026
+      POSTGRES_DB: sirojbek_typing
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sirojbek -d sirojbek_typing"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
