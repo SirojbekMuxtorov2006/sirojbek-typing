@@ -5,19 +5,9 @@ import Footer from '@/components/layout/Footer';
 import AuthProvider from '@/components/providers/AuthProvider';
 
 export const metadata: Metadata = {
-  title: 'SirojbekTyping — Professional Typing Speed Test & Learning Platform',
+  title: 'onlytyping — free online typing speed test & practice',
   description:
-    'Master your typing speed, accuracy, and productivity with SirojbekTyping. Touch typing curriculum, speed tests, weak-key training, and global leaderboard.',
-  keywords: [
-    'typing test',
-    'typing speed test',
-    'wpm test',
-    'touch typing',
-    'sirojbektyping',
-    'keyboard speed',
-    'typing lessons',
-  ],
-  authors: [{ name: 'Sirojbek' }],
+    'Free online typing speed test and practice platform. Test your words per minute, improve accuracy, and master touch typing with instant feedback.',
   icons: {
     icon: '/favicon.ico',
   },
@@ -29,11 +19,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
       </head>
-      <body className="bg-background text-text-primary antialiased font-sans flex flex-col min-h-screen">
+      <body className="bg-[#F8F9FA] text-[#1E232E] antialiased flex flex-col min-h-screen font-sans">
         <AuthProvider>
           <Navbar />
           <main className="flex-1 flex flex-col">{children}</main>

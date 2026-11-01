@@ -49,7 +49,16 @@ module.exports = {
         },
       },
       fontFamily: {
-        sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        sans: [
+          'Plus Jakarta Sans',
+          'Nunito',
+          '-apple-system',
+          'BlinkMacSystemFont',
+          '"Segoe UI"',
+          'Roboto',
+          'system-ui',
+          'sans-serif',
+        ],
         mono: ['Fira Code', 'JetBrains Mono', 'Courier New', 'monospace'],
       },
       boxShadow: {

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { RotateCcw, Clock, Calendar, Target } from 'lucide-react';
+import { RotateCcw, Clock, Calendar, Target, X, CheckCircle, Zap, Flame } from 'lucide-react';
 import TestSettingsBar from './TestSettingsBar';
 import ResultsModal from './ResultsModal';
 import OnlyTypingKeyboard from './OnlyTypingKeyboard';
@@ -45,6 +45,11 @@ export default function TypingTest({
   const [liveWpm, setLiveWpm] = useState<number>(0);
   const [correctKeystrokes, setCorrectKeystrokes] = useState<number>(0);
   const [totalKeystrokes, setTotalKeystrokes] = useState<number>(0);
+
+  // Modals
+  const [showChallengeModal, setShowChallengeModal] = useState<boolean>(false);
+  const [showQuestsModal, setShowQuestsModal] = useState<boolean>(false);
+  const [showStreakModal, setShowStreakModal] = useState<boolean>(false);
 
   // Tracking
   const mistakeMapRef = useRef<Record<string, number>>({});
@@ -252,7 +257,7 @@ export default function TypingTest({
 
       sound.playKeypress(!isWordCorrect);
 
-      setTotalKeystrokes((prev) => prev + 1); // count the space keystroke
+      setTotalKeystrokes((prev) => prev + 1);
       if (isWordCorrect) {
         setCorrectKeystrokes((prev) => prev + targetWord.length + 1);
       } else {
@@ -323,43 +328,52 @@ export default function TypingTest({
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto flex flex-col items-center select-none font-sans">
+    <div className="w-full max-w-5xl mx-auto flex flex-col items-center select-none font-sans px-2 sm:px-6">
       {/* 1. Mode Selection Floating Pills Bar */}
       <div className="mb-8 w-full flex justify-center">
         <TestSettingsBar onRestart={initTestText} disabled={isTestActive} />
       </div>
 
-      {/* 2. Greeting and Quests Row - exactly matching the screenshot! */}
-      <div className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 px-1">
+      {/* 2. Greeting and Quests Row - 100% matched to screenshot 1 & 2 */}
+      <div className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 px-2">
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1E232E]">
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#1E232E]">
             {greeting}
           </h2>
-          <p className="text-xs text-[#8A94A6] mt-0.5">
-            Best <strong className="text-[#1E232E] font-semibold">32 wpm</strong> •{' '}
-            <strong className="text-[#1E232E] font-semibold">28</strong> to go until your goal of 60.
+          <p className="text-xs sm:text-sm text-[#8A94A6] mt-0.5 font-medium">
+            Best <strong className="text-[#1E232E] font-bold">32 wpm</strong> •{' '}
+            <strong className="text-[#1E232E] font-bold">28</strong> to go until your goal of 60.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap text-xs font-medium">
+        <div className="flex items-center gap-2.5 flex-wrap text-xs font-semibold">
           {/* 1 day streak */}
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-[#FFD7CC] text-[#FF5E3A] shadow-sm">
+          <button
+            onClick={() => setShowStreakModal(true)}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white border border-[#FFD7CC] text-[#FF5E3A] shadow-sm hover:bg-[#FFE8DF]/50 transition-colors"
+          >
             <Clock className="w-3.5 h-3.5" />
             <span>1 day</span>
-          </div>
+          </button>
 
           {/* Today's challenge */}
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-[#FFD7CC] text-[#FF5E3A] shadow-sm">
+          <button
+            onClick={() => setShowChallengeModal(true)}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white border border-[#FFD7CC] text-[#FF5E3A] shadow-sm hover:bg-[#FFE8DF]/50 transition-colors"
+          >
             <Calendar className="w-3.5 h-3.5" />
             <span>today&apos;s challenge</span>
-          </div>
+          </button>
 
           {/* Quests */}
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-[#FFD7CC] text-[#FF5E3A] shadow-sm">
+          <button
+            onClick={() => setShowQuestsModal(true)}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white border border-[#FFD7CC] text-[#FF5E3A] shadow-sm hover:bg-[#FFE8DF]/50 transition-colors"
+          >
             <Target className="w-3.5 h-3.5" />
             <span>quests</span>
             <span className="text-[#FFB8A5] font-bold">•••</span>
-          </div>
+          </button>
 
           {/* Circular level progress badge */}
           <div className="relative w-8 h-8 rounded-full bg-white border-2 border-[#E8ECF2] border-t-[#FF5E3A] flex items-center justify-center font-bold text-xs text-[#1E232E] shadow-sm">
@@ -368,10 +382,10 @@ export default function TypingTest({
         </div>
       </div>
 
-      {/* 3. Main Typing Text Flow */}
+      {/* 3. Main Typing Text Flow - 100% matched to screenshot 1 & 2 */}
       <div
         onClick={() => inputRef.current?.focus()}
-        className="w-full min-h-[180px] p-2 sm:p-4 cursor-text relative select-none leading-relaxed tracking-wide text-2xl sm:text-3xl font-sans font-bold mb-6 focus:outline-none"
+        className="w-full min-h-[190px] p-2 sm:p-4 cursor-text relative select-none leading-[1.8] sm:leading-[1.9] tracking-wide text-3xl sm:text-4xl font-sans font-bold mb-6 focus:outline-none"
       >
         <input
           ref={inputRef}
@@ -385,15 +399,15 @@ export default function TypingTest({
           autoCapitalize="off"
         />
 
-        {/* Word by word rendering matching screenshot 1 and 2 */}
-        <div className="flex flex-wrap gap-x-4 gap-y-3.5 items-baseline text-[#8C96A8]">
+        {/* Word stream matching screenshot 1 and 2 */}
+        <div className="flex flex-wrap gap-x-4 sm:gap-x-5 gap-y-3 sm:gap-y-4 items-baseline text-[#8C96A8]">
           {wordsList.map((word, wordIdx) => {
             const isCompleted = wordIdx < currentWordIndex;
             const isCurrent = wordIdx === currentWordIndex;
 
             if (isCompleted) {
               return (
-                <span key={wordIdx} className="text-[#8C96A8]/75 transition-colors">
+                <span key={wordIdx} className="text-[#8C96A8]/70 transition-colors">
                   {word}
                 </span>
               );
@@ -404,7 +418,7 @@ export default function TypingTest({
               return (
                 <span
                   key={wordIdx}
-                  className="inline-flex items-center bg-[#FFF0EA] rounded-xl px-1 py-0.5 shadow-sm transition-all"
+                  className="inline-flex items-center bg-[#FFE8DF] rounded-xl px-1.5 py-0.5 shadow-sm transition-all"
                 >
                   {word.split('').map((char, charIdx) => {
                     const isTyped = charIdx < currentInput.length;
@@ -413,11 +427,11 @@ export default function TypingTest({
                     const isCharIncorrect = isTyped && !isCharCorrect;
 
                     if (isCharCurrent) {
-                      // EXACT active character box: vivid coral box with crisp white letter!
+                      // Solid coral rounded box with white letter
                       return (
                         <span
                           key={charIdx}
-                          className="inline-flex items-center justify-center bg-[#FF5E3A] text-white rounded-lg px-2 py-0.5 font-bold shadow-[0_4px_12px_rgba(255,94,58,0.45)] animate-in zoom-in-95 duration-150"
+                          className="inline-flex items-center justify-center bg-[#FF5E3A] text-white rounded-lg px-2 py-0.5 font-bold shadow-[0_4px_12px_rgba(255,94,58,0.45)]"
                         >
                           {char}
                         </span>
@@ -437,7 +451,7 @@ export default function TypingTest({
 
                     if (isCharCorrect) {
                       return (
-                        <span key={charIdx} className="text-[#2D3748] px-0.5">
+                        <span key={charIdx} className="text-[#1E232E] px-0.5">
                           {char}
                         </span>
                       );
@@ -468,16 +482,126 @@ export default function TypingTest({
         <button
           onClick={initTestText}
           title="Restart Test (Esc)"
-          className="w-11 h-11 rounded-full bg-white hover:bg-[#FFF0EA] border border-border shadow-sm flex items-center justify-center text-[#8A94A6] hover:text-[#FF5E3A] hover:border-[#FF5E3A] transition-all"
+          className="w-11 h-11 rounded-full bg-white hover:bg-[#FFE8DF] border border-[#E8ECF2] shadow-sm flex items-center justify-center text-[#8C96A8] hover:text-[#FF5E3A] hover:border-[#FF5E3A] transition-all"
         >
           <RotateCcw className="w-4 h-4" />
         </button>
       </div>
 
-      {/* 5. Bottom Virtual Keyboard (exact soft peach design from screenshot!) */}
+      {/* 5. Bottom Virtual Keyboard (exact soft peach design from screenshot 1 & 2!) */}
       <div className="w-full">
         <OnlyTypingKeyboard activeChar={activeChar} />
       </div>
+
+      {/* Modals for Today's Challenge, Quests, and Streak */}
+      {showChallengeModal && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-border space-y-4 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <div className="flex items-center gap-2 text-[#FF5E3A] font-bold">
+                <Calendar className="w-5 h-5" />
+                <span>Today&apos;s Daily Challenge</span>
+              </div>
+              <button
+                onClick={() => setShowChallengeModal(false)}
+                className="p-1 rounded-full text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <p className="text-sm text-[#1E232E] font-medium leading-relaxed">
+              Reach at least <strong>60 WPM</strong> with <strong>95% accuracy</strong> in a standard 60-second test today.
+            </p>
+            <div className="p-3 rounded-2xl bg-[#FFE8DF] text-xs font-semibold text-[#FF5E3A] flex items-center justify-between">
+              <span>Reward</span>
+              <span>+150 XP Points</span>
+            </div>
+            <button
+              onClick={() => {
+                setShowChallengeModal(false);
+                initTestText();
+              }}
+              className="w-full py-3 rounded-2xl bg-[#FF5E3A] text-white font-bold text-xs shadow-coral hover:bg-[#FF471D]"
+            >
+              Start Challenge
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showQuestsModal && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-border space-y-4 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <div className="flex items-center gap-2 text-[#FF5E3A] font-bold">
+                <Target className="w-5 h-5" />
+                <span>Daily Quests</span>
+              </div>
+              <button
+                onClick={() => setShowQuestsModal(false)}
+                className="p-1 rounded-full text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="space-y-3 text-xs">
+              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200">
+                <div className="flex justify-between font-bold text-[#1E232E] mb-1">
+                  <span>Complete 3 typing tests</span>
+                  <span className="text-[#FF5E3A]">1 / 3</span>
+                </div>
+                <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                  <div className="w-1/3 h-full bg-[#FF5E3A] rounded-full" />
+                </div>
+              </div>
+              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200">
+                <div className="flex justify-between font-bold text-[#1E232E] mb-1">
+                  <span>Maintain 96%+ accuracy</span>
+                  <span className="text-[#27AE60]">✓ Done</span>
+                </div>
+                <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                  <div className="w-full h-full bg-[#27AE60] rounded-full" />
+                </div>
+              </div>
+              <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200">
+                <div className="flex justify-between font-bold text-[#1E232E] mb-1">
+                  <span>Break 40 WPM milestone</span>
+                  <span className="text-slate-400">32 / 40</span>
+                </div>
+                <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                  <div className="w-4/5 h-full bg-[#FF5E3A] rounded-full" />
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowQuestsModal(false)}
+              className="w-full py-2.5 rounded-2xl bg-[#FF5E3A] text-white font-bold text-xs"
+            >
+              Got It
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showStreakModal && (
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-border space-y-4 text-center animate-in fade-in zoom-in-95">
+            <div className="w-14 h-14 rounded-full bg-[#FFE8DF] text-[#FF5E3A] flex items-center justify-center mx-auto">
+              <Flame className="w-8 h-8 fill-[#FF5E3A]" />
+            </div>
+            <h3 className="text-xl font-bold text-[#1E232E]">1 Day Streak!</h3>
+            <p className="text-xs text-[#8A94A6] leading-relaxed">
+              Practice every day to build finger memory and keep your streak alive. Reach 7 days for the <em>Unbreakable Habit</em> achievement.
+            </p>
+            <button
+              onClick={() => setShowStreakModal(false)}
+              className="w-full py-2.5 rounded-2xl bg-[#FF5E3A] text-white font-bold text-xs"
+            >
+              Continue Practice
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

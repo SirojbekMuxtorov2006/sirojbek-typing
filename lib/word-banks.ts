@@ -4,8 +4,11 @@
  */
 
 export const ENGLISH_WORDS = [
-  'about', 'above', 'across', 'action', 'activity', 'actually', 'addition', 'address', 'administration',
-  'admit', 'adult', 'affect', 'after', 'again', 'against', 'agency', 'agent', 'agree', 'agreement', 'ahead',
+  'other', 'city', 'develop', 'they', 'do', 'since', 'set', 'also', 'part', 'right', 'you', 'ask',
+  'under', 'mean', 'new', 'around', 'form', 'run', 'follow', 'tell', 'each', 'those', 'write', 'become', 'find',
+  'where', 'program', 'here', 'can', 'lead', 'long', 'again', 'own', 'possible', 'without', 'give', 'course', 'last',
+  'no', 'if', 'might', 'fact', 'before', 'by', 'about', 'above', 'across', 'action', 'activity', 'actually', 'addition',
+  'address', 'administration', 'admit', 'adult', 'affect', 'after', 'against', 'agency', 'agent', 'agree', 'agreement',
   'air', 'all', 'allow', 'almost', 'alone', 'along', 'already', 'also', 'although', 'always', 'American',
   'among', 'amount', 'analysis', 'and', 'animal', 'another', 'answer', 'any', 'anyone', 'anything', 'appear',
   'apply', 'approach', 'area', 'argue', 'arm', 'around', 'arrive', 'art', 'article', 'artist', 'as', 'ask',

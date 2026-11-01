@@ -1,12 +1,30 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface OnlyTypingKeyboardProps {
   activeChar?: string;
 }
 
 export default function OnlyTypingKeyboard({ activeChar = '' }: OnlyTypingKeyboardProps) {
+  const [pressedKey, setPressedKey] = useState<string>('');
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      setPressedKey(e.key.toLowerCase());
+    };
+    const handleKeyUp = () => {
+      setPressedKey('');
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
+
   const keyboardRows = [
     ['`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '⌫'],
     ['tab', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\\'],
@@ -16,15 +34,16 @@ export default function OnlyTypingKeyboard({ activeChar = '' }: OnlyTypingKeyboa
   ];
 
   const isCurrentActive = (key: string) => {
-    if (!activeChar) return false;
-    if (key === 'space' && activeChar === ' ') return true;
-    return key.toLowerCase() === activeChar.toLowerCase();
+    if (key === 'space' && (activeChar === ' ' || pressedKey === ' ')) return true;
+    if (pressedKey && pressedKey === key.toLowerCase()) return true;
+    if (activeChar && activeChar.toLowerCase() === key.toLowerCase()) return true;
+    return false;
   };
 
   const getKeyWidth = (key: string) => {
     switch (key) {
       case 'space':
-        return 'w-60 h-10';
+        return 'w-64 h-10';
       case '⌫':
       case 'backspace':
         return 'w-14 h-9';
@@ -42,7 +61,7 @@ export default function OnlyTypingKeyboard({ activeChar = '' }: OnlyTypingKeyboa
   };
 
   return (
-    <div className="w-full flex flex-col items-center justify-center p-5 bg-[#FFF5F1]/80 rounded-[28px] border border-[#FDE5DC] select-none shadow-sm max-w-2xl mx-auto">
+    <div className="w-full flex flex-col items-center justify-center p-5 bg-[#FFF5F1]/85 rounded-[32px] border border-[#FDE5DC] select-none shadow-[0_2px_12px_rgba(255,184,165,0.08)] max-w-2xl mx-auto">
       <div className="space-y-1.5 w-full flex flex-col items-center">
         {keyboardRows.map((row, rowIdx) => (
           <div key={rowIdx} className="flex justify-center gap-1.5">
@@ -56,7 +75,7 @@ export default function OnlyTypingKeyboard({ activeChar = '' }: OnlyTypingKeyboa
 
               if (isActive) {
                 keyStyle =
-                  'bg-[#FF5E3A] text-white font-bold border-[#FF5E3A] shadow-[0_4px_12px_rgba(255,94,58,0.4)] scale-105';
+                  'bg-[#FF5E3A] text-white font-bold border-[#FF5E3A] shadow-[0_4px_12px_rgba(255,94,58,0.45)] scale-105';
               } else if (isShift) {
                 keyStyle =
                   'bg-[#FFB8A5] text-white font-semibold border-transparent shadow-[0_2px_4px_rgba(255,184,165,0.2)]';
@@ -70,13 +89,13 @@ export default function OnlyTypingKeyboard({ activeChar = '' }: OnlyTypingKeyboa
                   key={`${rowIdx}-${keyIdx}-${key}`}
                   className={`${getKeyWidth(
                     key
-                  )} ${keyStyle} rounded-xl border text-[11px] font-sans flex items-center justify-center transition-all duration-150 relative`}
+                  )} ${keyStyle} rounded-xl border text-[11px] font-sans flex items-center justify-center transition-all duration-100 relative`}
                 >
                   <span className="leading-none">{key === 'space' ? '' : key}</span>
 
-                  {/* Tactile indicator for f and j */}
+                  {/* Tactile indexing bumps on f and j */}
                   {(key === 'f' || key === 'j') && !isActive && (
-                    <span className="absolute bottom-1 w-2.5 h-[1.5px] bg-[#9E7767] rounded-full" />
+                    <span className="absolute bottom-1.5 w-2.5 h-[1.5px] bg-[#9E7767] rounded-full" />
                   )}
                 </div>
               );
