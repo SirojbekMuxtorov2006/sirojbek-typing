@@ -43,35 +43,35 @@ export default function OnlyTypingKeyboard({ activeChar = '' }: OnlyTypingKeyboa
   const getKeyWidth = (key: string) => {
     switch (key) {
       case 'space':
-        return 'w-64 h-10';
+        return 'w-64 sm:w-72 h-10';
       case '⌫':
       case 'backspace':
-        return 'w-14 h-9';
+        return 'w-14 sm:w-16 h-10';
       case 'tab':
       case '\\':
-        return 'w-13 h-9';
+        return 'w-12 sm:w-14 h-10';
       case 'caps':
       case 'enter':
-        return 'w-14 h-9';
+        return 'w-14 sm:w-16 h-10';
       case 'shift':
-        return 'w-16 h-9';
+        return 'w-16 sm:w-20 h-10';
       default:
-        return 'w-9 h-9';
+        return 'w-9 sm:w-11 h-10';
     }
   };
 
   return (
-    <div className="w-full flex flex-col items-center justify-center p-5 bg-[#FFF5F1]/85 rounded-[32px] border border-[#FDE5DC] select-none shadow-[0_2px_12px_rgba(255,184,165,0.08)] max-w-2xl mx-auto">
+    <div className="w-full flex flex-col items-center justify-center p-5 sm:p-6 bg-[#FFF5F1]/85 rounded-[32px] border border-[#FDE5DC] select-none shadow-[0_2px_12px_rgba(255,184,165,0.08)]">
       <div className="space-y-1.5 w-full flex flex-col items-center">
         {keyboardRows.map((row, rowIdx) => (
-          <div key={rowIdx} className="flex justify-center gap-1.5">
+          <div key={rowIdx} className="flex justify-center gap-1.5 w-full">
             {row.map((key, keyIdx) => {
               const isActive = isCurrentActive(key);
               const isShift = key === 'shift';
               const isSpace = key === 'space';
 
               let keyStyle =
-                'bg-white text-[#7A645C] border-[#F6E4DC] hover:border-[#FF5E3A]/40 shadow-[0_2px_4px_rgba(158,119,103,0.06)]';
+                'bg-white text-[#7A645C] border-[#F6E4DC] hover:border-[#FF5E3A]/40 shadow-[0_2px_4px_rgba(158,119,103,0.06)] font-semibold';
 
               if (isActive) {
                 keyStyle =
@@ -89,11 +89,11 @@ export default function OnlyTypingKeyboard({ activeChar = '' }: OnlyTypingKeyboa
                   key={`${rowIdx}-${keyIdx}-${key}`}
                   className={`${getKeyWidth(
                     key
-                  )} ${keyStyle} rounded-xl border text-[11px] font-sans flex items-center justify-center transition-all duration-100 relative`}
+                  )} ${keyStyle} rounded-xl border text-[11px] sm:text-xs font-sans flex items-center justify-center transition-all duration-100 relative`}
                 >
                   <span className="leading-none">{key === 'space' ? '' : key}</span>
 
-                  {/* Tactile indexing bumps on f and j */}
+                  {/* Tactile bumps on f and j */}
                   {(key === 'f' || key === 'j') && !isActive && (
                     <span className="absolute bottom-1.5 w-2.5 h-[1.5px] bg-[#9E7767] rounded-full" />
                   )}

@@ -42,14 +42,14 @@ export default function TestSettingsBar({ onRestart, disabled = false }: TestSet
   };
 
   return (
-    <div className="w-full flex flex-wrap items-center justify-center gap-2.5 select-none font-sans text-xs">
+    <div className="w-full flex flex-wrap items-center justify-center gap-2 select-none font-sans text-xs">
       {/* Pill 1: @ punctuation and # numbers */}
-      <div className="flex items-center bg-white px-3 py-1.5 rounded-full border border-border/90 shadow-sm gap-3">
+      <div className="flex items-center bg-white px-3 py-1.5 rounded-full border border-border shadow-[0_2px_8px_rgba(0,0,0,0.03)] gap-3">
         <button
           onClick={togglePunctuation}
           className={`flex items-center gap-1.5 transition-colors ${
             settings.punctuation
-              ? 'text-[#FF5E3A] font-semibold'
+              ? 'text-[#FF5E3A] font-bold'
               : 'text-[#8A94A6] hover:text-[#1E232E]'
           }`}
         >
@@ -65,7 +65,7 @@ export default function TestSettingsBar({ onRestart, disabled = false }: TestSet
           onClick={toggleNumbers}
           className={`flex items-center gap-1.5 transition-colors ${
             settings.numbers
-              ? 'text-[#FF5E3A] font-semibold'
+              ? 'text-[#FF5E3A] font-bold'
               : 'text-[#8A94A6] hover:text-[#1E232E]'
           }`}
         >
@@ -78,8 +78,8 @@ export default function TestSettingsBar({ onRestart, disabled = false }: TestSet
         </button>
       </div>
 
-      {/* Pill 2: 15s 30s 60s words ... more ⌄ */}
-      <div className="flex items-center bg-white px-2 py-1.5 rounded-full border border-border/90 shadow-sm gap-1">
+      {/* Pill 2: 15s 30s 60s T words ... more ⌄ */}
+      <div className="flex items-center bg-white px-2 py-1.5 rounded-full border border-border shadow-[0_2px_8px_rgba(0,0,0,0.03)] gap-1">
         {[15, 30, 60].map((dur) => (
           <button
             key={dur}
@@ -87,9 +87,9 @@ export default function TestSettingsBar({ onRestart, disabled = false }: TestSet
               if (settings.mode !== 'time') setMode('time');
               handleDurationChange(dur);
             }}
-            className={`px-2.5 py-1 rounded-full font-medium transition-colors ${
+            className={`px-2.5 py-1 rounded-full font-semibold transition-colors ${
               settings.mode === 'time' && settings.duration === dur
-                ? 'bg-[#FFF0EA] text-[#FF5E3A] font-bold shadow-sm'
+                ? 'bg-[#FFE8DF] text-[#FF5E3A] font-bold shadow-sm'
                 : 'text-[#8A94A6] hover:text-[#1E232E]'
             }`}
           >
@@ -100,9 +100,9 @@ export default function TestSettingsBar({ onRestart, disabled = false }: TestSet
         {/* T words */}
         <button
           onClick={() => handleModeChange('words')}
-          className={`flex items-center gap-1 px-3 py-1 rounded-full font-medium transition-colors ${
+          className={`flex items-center gap-1 px-3 py-1 rounded-full font-semibold transition-colors ${
             settings.mode === 'words'
-              ? 'bg-[#FFF0EA] text-[#FF5E3A] font-bold shadow-sm'
+              ? 'bg-[#FFE8DF] text-[#FF5E3A] font-bold shadow-sm'
               : 'text-[#8A94A6] hover:text-[#1E232E]'
           }`}
         >
@@ -116,7 +116,7 @@ export default function TestSettingsBar({ onRestart, disabled = false }: TestSet
             onClick={() => setMoreMenuOpen(!moreMenuOpen)}
             className={`flex items-center gap-1 px-2.5 py-1 rounded-full transition-colors ${
               ['quote', 'zen', 'custom'].includes(settings.mode)
-                ? 'bg-[#FFF0EA] text-[#FF5E3A] font-bold'
+                ? 'bg-[#FFE8DF] text-[#FF5E3A] font-bold'
                 : 'text-[#8A94A6] hover:text-[#1E232E]'
             }`}
           >
@@ -134,8 +134,8 @@ export default function TestSettingsBar({ onRestart, disabled = false }: TestSet
                   handleModeChange('quote');
                   setMoreMenuOpen(false);
                 }}
-                className={`w-full px-3 py-1.5 text-left text-xs font-medium ${
-                  settings.mode === 'quote' ? 'text-[#FF5E3A] bg-[#FFF0EA]' : 'text-[#8A94A6] hover:bg-slate-50'
+                className={`w-full px-3 py-1.5 text-left text-xs font-semibold ${
+                  settings.mode === 'quote' ? 'text-[#FF5E3A] bg-[#FFE8DF]' : 'text-[#8A94A6] hover:bg-slate-50'
                 }`}
               >
                 Quote
@@ -145,8 +145,8 @@ export default function TestSettingsBar({ onRestart, disabled = false }: TestSet
                   handleModeChange('zen');
                   setMoreMenuOpen(false);
                 }}
-                className={`w-full px-3 py-1.5 text-left text-xs font-medium ${
-                  settings.mode === 'zen' ? 'text-[#FF5E3A] bg-[#FFF0EA]' : 'text-[#8A94A6] hover:bg-slate-50'
+                className={`w-full px-3 py-1.5 text-left text-xs font-semibold ${
+                  settings.mode === 'zen' ? 'text-[#FF5E3A] bg-[#FFE8DF]' : 'text-[#8A94A6] hover:bg-slate-50'
                 }`}
               >
                 Zen Mode
@@ -156,8 +156,8 @@ export default function TestSettingsBar({ onRestart, disabled = false }: TestSet
                   handleModeChange('custom');
                   setMoreMenuOpen(false);
                 }}
-                className={`w-full px-3 py-1.5 text-left text-xs font-medium ${
-                  settings.mode === 'custom' ? 'text-[#FF5E3A] bg-[#FFF0EA]' : 'text-[#8A94A6] hover:bg-slate-50'
+                className={`w-full px-3 py-1.5 text-left text-xs font-semibold ${
+                  settings.mode === 'custom' ? 'text-[#FF5E3A] bg-[#FFE8DF]' : 'text-[#8A94A6] hover:bg-slate-50'
                 }`}
               >
                 Custom Text
@@ -168,14 +168,14 @@ export default function TestSettingsBar({ onRestart, disabled = false }: TestSet
       </div>
 
       {/* Pill 3: Word count 10 25 50 100 */}
-      <div className="flex items-center bg-white px-2 py-1.5 rounded-full border border-border/90 shadow-sm gap-1">
+      <div className="flex items-center bg-white px-2 py-1.5 rounded-full border border-border shadow-[0_2px_8px_rgba(0,0,0,0.03)] gap-1">
         {[10, 25, 50, 100].map((count) => (
           <button
             key={count}
             onClick={() => handleWordCountChange(count)}
-            className={`px-2.5 py-1 rounded-full font-medium transition-colors ${
+            className={`px-2.5 py-1 rounded-full font-semibold transition-colors ${
               settings.wordCount === count
-                ? 'bg-[#FFF0EA] text-[#FF5E3A] font-bold shadow-sm'
+                ? 'bg-[#FFE8DF] text-[#FF5E3A] font-bold shadow-sm'
                 : 'text-[#8A94A6] hover:text-[#1E232E]'
             }`}
           >
@@ -188,7 +188,7 @@ export default function TestSettingsBar({ onRestart, disabled = false }: TestSet
       <div className="relative">
         <button
           onClick={() => setLangMenuOpen(!langMenuOpen)}
-          className="flex items-center gap-1.5 bg-white px-3.5 py-1.5 rounded-full border border-border/90 shadow-sm text-[#8A94A6] hover:text-[#1E232E] transition-colors"
+          className="flex items-center gap-1.5 bg-white px-3.5 py-1.5 rounded-full border border-border shadow-[0_2px_8px_rgba(0,0,0,0.03)] text-[#8A94A6] hover:text-[#1E232E] font-medium transition-colors"
         >
           <Globe className="w-3.5 h-3.5" />
           <span>
@@ -211,7 +211,7 @@ export default function TestSettingsBar({ onRestart, disabled = false }: TestSet
                 setLangMenuOpen(false);
                 onRestart();
               }}
-              className="w-full px-3 py-1.5 text-left text-xs text-[#8A94A6] hover:bg-slate-50 hover:text-[#1E232E]"
+              className="w-full px-3 py-1.5 text-left text-xs font-semibold text-[#8A94A6] hover:bg-slate-50 hover:text-[#1E232E]"
             >
               English 200
             </button>
@@ -221,7 +221,7 @@ export default function TestSettingsBar({ onRestart, disabled = false }: TestSet
                 setLangMenuOpen(false);
                 onRestart();
               }}
-              className="w-full px-3 py-1.5 text-left text-xs text-[#8A94A6] hover:bg-slate-50 hover:text-[#1E232E]"
+              className="w-full px-3 py-1.5 text-left text-xs font-semibold text-[#8A94A6] hover:bg-slate-50 hover:text-[#1E232E]"
             >
               O&apos;zbekcha (Lotin)
             </button>
@@ -231,7 +231,7 @@ export default function TestSettingsBar({ onRestart, disabled = false }: TestSet
                 setLangMenuOpen(false);
                 onRestart();
               }}
-              className="w-full px-3 py-1.5 text-left text-xs text-[#8A94A6] hover:bg-slate-50 hover:text-[#1E232E]"
+              className="w-full px-3 py-1.5 text-left text-xs font-semibold text-[#8A94A6] hover:bg-slate-50 hover:text-[#1E232E]"
             >
               Русский
             </button>

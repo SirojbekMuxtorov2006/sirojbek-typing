@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { RotateCcw, Clock, Calendar, Target, X, CheckCircle, Zap, Flame } from 'lucide-react';
+import { RotateCcw, Clock, Calendar, Target, X, Flame } from 'lucide-react';
 import TestSettingsBar from './TestSettingsBar';
 import ResultsModal from './ResultsModal';
 import OnlyTypingKeyboard from './OnlyTypingKeyboard';
@@ -56,6 +56,8 @@ export default function TypingTest({
   const secondMetricsRef = useRef<SecondMetric[]>([]);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const wordsContainerRef = useRef<HTMLDivElement>(null);
+  const activeWordRef = useRef<HTMLSpanElement>(null);
 
   // Completed result
   const [completedResult, setCompletedResult] = useState<TypingResultPayload | null>(null);
@@ -108,6 +110,10 @@ export default function TypingTest({
       timerIntervalRef.current = null;
     }
 
+    if (wordsContainerRef.current) {
+      wordsContainerRef.current.scrollTop = 0;
+    }
+
     setTimeout(() => {
       inputRef.current?.focus();
     }, 50);
@@ -126,6 +132,24 @@ export default function TypingTest({
   useEffect(() => {
     initTestText();
   }, [initTestText]);
+
+  // Smooth 3-line scroll tracking
+  useEffect(() => {
+    if (activeWordRef.current && wordsContainerRef.current) {
+      const activeEl = activeWordRef.current;
+      const containerEl = wordsContainerRef.current;
+      const wordTop = activeEl.offsetTop;
+      const containerTop = containerEl.scrollTop;
+
+      // Keep active line within top 2 visible lines
+      if (wordTop - containerTop > 70) {
+        containerEl.scrollTo({
+          top: wordTop - 12,
+          behavior: 'smooth',
+        });
+      }
+    }
+  }, [currentWordIndex]);
 
   // Finish test callback
   const handleFinishTest = useCallback(async () => {
@@ -328,29 +352,29 @@ export default function TypingTest({
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto flex flex-col items-center select-none font-sans px-2 sm:px-6">
+    <div className="w-full max-w-[760px] mx-auto flex flex-col items-center select-none font-sans px-2">
       {/* 1. Mode Selection Floating Pills Bar */}
-      <div className="mb-8 w-full flex justify-center">
+      <div className="mb-6 w-full flex justify-center">
         <TestSettingsBar onRestart={initTestText} disabled={isTestActive} />
       </div>
 
-      {/* 2. Greeting and Quests Row - 100% matched to screenshot 1 & 2 */}
-      <div className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 px-2">
+      {/* 2. Greeting and Quests Row - aligned to exact max-w-[760px] width */}
+      <div className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 px-1">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#1E232E]">
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-[#1E232E]">
             {greeting}
           </h2>
-          <p className="text-xs sm:text-sm text-[#8A94A6] mt-0.5 font-medium">
+          <p className="text-xs text-[#8A94A6] mt-0.5 font-medium">
             Best <strong className="text-[#1E232E] font-bold">32 wpm</strong> •{' '}
             <strong className="text-[#1E232E] font-bold">28</strong> to go until your goal of 60.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 flex-wrap text-xs font-semibold">
+        <div className="flex items-center gap-2 flex-wrap text-xs font-semibold">
           {/* 1 day streak */}
           <button
             onClick={() => setShowStreakModal(true)}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white border border-[#FFD7CC] text-[#FF5E3A] shadow-sm hover:bg-[#FFE8DF]/50 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-[#FFD7CC] text-[#FF5E3A] shadow-sm hover:bg-[#FFE8DF]/50 transition-colors"
           >
             <Clock className="w-3.5 h-3.5" />
             <span>1 day</span>
@@ -359,7 +383,7 @@ export default function TypingTest({
           {/* Today's challenge */}
           <button
             onClick={() => setShowChallengeModal(true)}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white border border-[#FFD7CC] text-[#FF5E3A] shadow-sm hover:bg-[#FFE8DF]/50 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-[#FFD7CC] text-[#FF5E3A] shadow-sm hover:bg-[#FFE8DF]/50 transition-colors"
           >
             <Calendar className="w-3.5 h-3.5" />
             <span>today&apos;s challenge</span>
@@ -368,7 +392,7 @@ export default function TypingTest({
           {/* Quests */}
           <button
             onClick={() => setShowQuestsModal(true)}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white border border-[#FFD7CC] text-[#FF5E3A] shadow-sm hover:bg-[#FFE8DF]/50 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-[#FFD7CC] text-[#FF5E3A] shadow-sm hover:bg-[#FFE8DF]/50 transition-colors"
           >
             <Target className="w-3.5 h-3.5" />
             <span>quests</span>
@@ -382,10 +406,11 @@ export default function TypingTest({
         </div>
       </div>
 
-      {/* 3. Main Typing Text Flow - 100% matched to screenshot 1 & 2 */}
+      {/* 3. Main Typing Text Flow - Compact 3-Line Window (Text sal kamroq bo'lsin!) */}
       <div
+        ref={wordsContainerRef}
         onClick={() => inputRef.current?.focus()}
-        className="w-full min-h-[190px] p-2 sm:p-4 cursor-text relative select-none leading-[1.8] sm:leading-[1.9] tracking-wide text-3xl sm:text-4xl font-sans font-bold mb-6 focus:outline-none"
+        className="w-full h-[148px] overflow-hidden cursor-text relative select-none leading-[2.1] tracking-wide text-2xl sm:text-[26px] font-sans font-bold px-1 focus:outline-none"
       >
         <input
           ref={inputRef}
@@ -399,15 +424,15 @@ export default function TypingTest({
           autoCapitalize="off"
         />
 
-        {/* Word stream matching screenshot 1 and 2 */}
-        <div className="flex flex-wrap gap-x-4 sm:gap-x-5 gap-y-3 sm:gap-y-4 items-baseline text-[#8C96A8]">
+        {/* Word stream matching exact user screenshot */}
+        <div className="flex flex-wrap gap-x-3.5 gap-y-2 items-baseline text-[#8C96A8]">
           {wordsList.map((word, wordIdx) => {
             const isCompleted = wordIdx < currentWordIndex;
             const isCurrent = wordIdx === currentWordIndex;
 
             if (isCompleted) {
               return (
-                <span key={wordIdx} className="text-[#8C96A8]/70 transition-colors">
+                <span key={wordIdx} className="text-[#8C96A8]/65 transition-colors">
                   {word}
                 </span>
               );
@@ -418,6 +443,7 @@ export default function TypingTest({
               return (
                 <span
                   key={wordIdx}
+                  ref={activeWordRef}
                   className="inline-flex items-center bg-[#FFE8DF] rounded-xl px-1.5 py-0.5 shadow-sm transition-all"
                 >
                   {word.split('').map((char, charIdx) => {
@@ -427,7 +453,7 @@ export default function TypingTest({
                     const isCharIncorrect = isTyped && !isCharCorrect;
 
                     if (isCharCurrent) {
-                      // Solid coral rounded box with white letter
+                      // Solid coral badge with white letter matching screenshot exactly
                       return (
                         <span
                           key={charIdx}
@@ -458,7 +484,7 @@ export default function TypingTest({
                     }
 
                     return (
-                      <span key={charIdx} className="text-[#4A5568] px-0.5">
+                      <span key={charIdx} className="text-[#374151] px-0.5">
                         {char}
                       </span>
                     );
@@ -478,7 +504,7 @@ export default function TypingTest({
       </div>
 
       {/* 4. Center Circular Reload Button */}
-      <div className="flex justify-center mb-8">
+      <div className="flex justify-center my-5">
         <button
           onClick={initTestText}
           title="Restart Test (Esc)"
@@ -488,7 +514,7 @@ export default function TypingTest({
         </button>
       </div>
 
-      {/* 5. Bottom Virtual Keyboard (exact soft peach design from screenshot 1 & 2!) */}
+      {/* 5. Bottom Virtual Keyboard - 100% matched width to text block (max-w-[760px]) */}
       <div className="w-full">
         <OnlyTypingKeyboard activeChar={activeChar} />
       </div>
